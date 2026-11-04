@@ -1,0 +1,39 @@
+<mujoco model="two_joint_pusher">
+  <compiler angle="radian"/>
+  <option timestep="0.002" gravity="0 0 -9.81" integrator="implicitfast"/>
+  <default>
+    <joint damping="0.4" armature="0.01" limited="true"/>
+    <geom friction="0.7 0.005 0.0001" condim="3"/>
+    <position kp="35" kv="5" ctrllimited="true" forcelimited="true" forcerange="-8 8"/>
+  </default>
+  <visual>
+    <global azimuth="120" elevation="-35"/>
+  </visual>
+  <worldbody>
+    <light pos="0 0 2" dir="0 0 -1"/>
+    <geom name="ground" type="plane" size="2 2 0.1" rgba="0.22 0.26 0.29 1"/>
+    <body name="base" pos="0 0 0.03">
+      <geom name="base_geom" type="cylinder" size="0.065 0.03" mass="2" rgba="0.4 0.4 0.45 1"/>
+      <body name="upper_arm" pos="0 0 0.06">
+        <joint name="shoulder" type="hinge" axis="0 0 1" range="-1.57 1.57"/>
+        <geom name="upper_link" type="capsule" fromto="0 0 0 0.30 0 0" size="0.018" mass="0.5" rgba="0.2 0.55 0.85 1"/>
+        <body name="forearm" pos="0.30 0 0">
+          <joint name="elbow" type="hinge" axis="0 0 1" range="-2.1 2.1"/>
+          <geom name="lower_link" type="capsule" fromto="0 0 0 0.25 0 0" size="0.018" mass="0.35" rgba="0.25 0.75 0.65 1"/>
+          <geom name="pusher" type="capsule" fromto="0.25 0 0 0.25 0 -0.055" size="0.022" mass="0.08" rgba="0.85 0.85 0.9 1"/>
+        </body>
+      </body>
+    </body>
+    <body name="cube" pos="0.52 0.13 0.12">
+      <freejoint name="cube_free"/>
+      <geom name="cube_geom" type="box" size="0.035 0.035 0.035" mass="0.10" rgba="0.95 0.55 0.15 1"/>
+    </body>
+  </worldbody>
+  <contact>
+    <exclude body1="base" body2="forearm"/>
+  </contact>
+  <actuator>
+    <position name="shoulder_servo" joint="shoulder" ctrlrange="-1.57 1.57"/>
+    <position name="elbow_servo" joint="elbow" ctrlrange="-2.1 2.1"/>
+  </actuator>
+</mujoco>

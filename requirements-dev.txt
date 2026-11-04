@@ -1,0 +1,5 @@
+-r requirements.txt
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.15.0+cpu
+pytest==9.2.0
+matplotlib==3.11.2

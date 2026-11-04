@@ -1,0 +1,30 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Watch varied contact predictions",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "simple_arm.contact_viewer",
+      "args": ["--run", "runs/arm_cube_varied_unseen_recursive"],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Run CPU training smoke test",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "simple_arm.training_smoke",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Run arm simulation",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "simple_arm",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}
