@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import time
 
 import mujoco
 import numpy as np
@@ -14,6 +15,7 @@ from .contact_learning import (
     rollout, train, train_multistep,
 )
 from .contact_simulation import ContactSimulation, link_lengths, model_hash
+from .collection_workers import DEFAULT_WORKERS, RNG_SCHEME, collect_tasks, effective_workers, get_simulation, unit_generator
 
 
 FAMILIES = ["smooth", "abrupt", "coordinated", "reversals"]
@@ -121,85 +123,107 @@ def check_coverage(summary):
         raise RuntimeError("Dataset coverage failed: " + "; ".join(failures))
 
 
-def collect_varied(path, episodes=1200, seed=191):
+def _collect_varied_episode(task):
+    seed, episode = task
+    generator = unit_generator(seed, episode, 20)
+    simulation = get_simulation()
+    lengths, limits = link_lengths(), simulation.action_limits
+    family = episode % len(FAMILIES)
+    states = np.empty((1, 201, 13))
+    actions = np.empty((1, 200, 2))
+    contacts = np.empty((1, 200, 10), dtype=bool)
+    starting = np.empty((1, 200), dtype=bool)
+    specs, rejected = [], {"initialization": 0, "joint_limits": 0, "motion": 0, "contact": 0}
+    # Exact 70/30 targeted/workspace and 50/50 rest/moving mix within each family.
+    slot = episode // 4
+    targeted = slot % 10 < 7
+    moving = slot % 2 == 1
+    for attempt in range(50):
+        arm = generator.uniform(limits[:, 0] + 0.15, limits[:, 1] - 0.15)
+        commands = command_sequence(generator, arm, limits, family)
+        yaw = generator.uniform(-np.pi, np.pi)
+        arm_velocity = generator.uniform(-0.5, 0.5, 2) if generator.random() < 0.7 else np.zeros(2)
+        arm_velocity = np.where((arm < limits[:, 0] + 0.3) | (arm > limits[:, 1] - 0.3), 0, arm_velocity)
+        angle = generator.uniform(-np.pi, np.pi)
+        speed = generator.uniform(0.02, 0.15) if moving else 0
+        cube_velocity = np.array([speed * np.cos(angle), speed * np.sin(angle), generator.uniform(-1, 1) if moving else 0])
+        if targeted:
+            waypoint = int(generator.integers(1, 8))
+            cube = tip_position(commands[waypoint], lengths) + generator.uniform(-0.015, 0.015, 2)
+        else:
+            random_pose = generator.uniform(limits[:, 0] + 0.15, limits[:, 1] - 0.15)
+            cube = tip_position(random_pose, lengths)
+        if np.linalg.norm(cube) < 0.12:
+            rejected["initialization"] += 1
+            continue
+        try:
+            initial = simulation.initialize(arm, cube, yaw, arm_velocity, cube_velocity)
+        except ValueError:
+            rejected["initialization"] += 1
+            continue
+        states[0, 0] = initial
+        joint_violation = False
+        for step in range(200):
+            action = commands[step // 5]
+            actions[0, step] = action
+            starting[0, step] = simulation.contact()
+            simulation.data.ctrl[simulation.actuator_ids] = action
+            for substep in range(10):
+                mujoco.mj_step(simulation.model, simulation.data)
+                mujoco.mj_forward(simulation.model, simulation.data)
+                contacts[0, step, substep] = simulation.contact()
+                q = simulation.data.qpos[simulation.qpos_indices]
+                joint_violation |= bool(np.any(q < limits[:, 0] - 1e-4) or np.any(q > limits[:, 1] + 1e-4))
+            states[0, step + 1] = simulation.extract()
+        trajectory = states[0]
+        # Reject impacts with hard stops rather than training outside this experiment's regime.
+        if joint_violation:
+            rejected["joint_limits"] += 1
+            continue
+        if not np.all(np.ptp(trajectory[:, :2], axis=0) >= np.deg2rad(15)):
+            rejected["motion"] += 1
+            continue
+        contact_fraction = contacts[0].reshape(40, 50).any(axis=-1).mean()
+        displacement = np.linalg.norm(trajectory[-1, 4:6] - trajectory[0, 4:6])
+        if targeted and (contact_fraction < 0.225 or displacement <= 0.02):
+            rejected["contact"] += 1
+            continue
+        specs.append({"targeted": targeted, "moving_start": moving, "attempts": attempt + 1,
+                      "initial_arm": arm.tolist(), "initial_cube_xy": cube.tolist(), "initial_cube_yaw": yaw,
+                      "initial_arm_velocity": arm_velocity.tolist(), "initial_cube_velocity": cube_velocity.tolist()})
+        break
+    else:
+        raise RuntimeError(f"No valid episode {episode} ({FAMILIES[family]}) after 50 attempts: {rejected}")
+    return episode, states[0], actions[0], contacts[0], starting[0], specs[0], rejected
+
+
+def collect_varied(path, episodes=1200, seed=191, *, workers=DEFAULT_WORKERS):
     if episodes < 40 or episodes % 40:
         raise ValueError("Use a multiple of 40 episodes for balanced families and 70/15/15 splits")
     path = Path(path)
     if path.exists() or path.with_suffix(".json").exists():
         raise FileExistsError(f"Preserving existing dataset: {path}")
-    generator = np.random.default_rng(seed)
-    simulation = ContactSimulation()
+    effective_workers(workers, episodes)
+    collection_started = time.perf_counter()
+    generator = unit_generator(seed, 0, 21)
     lengths = link_lengths()
-    limits = simulation.action_limits
     states = np.empty((episodes, 201, 13))
     actions = np.empty((episodes, 200, 2))
     contacts = np.empty((episodes, 200, 10), dtype=bool)
     starting = np.empty((episodes, 200), dtype=bool)
-    kinds = np.arange(episodes) % 4
-    specs, rejected = [], {"initialization": 0, "joint_limits": 0, "motion": 0, "contact": 0}
-    for episode, family in enumerate(kinds):
-        # Exact 70/30 targeted/workspace and 50/50 rest/moving mix within each family.
-        slot = episode // 4
-        targeted = slot % 10 < 7
-        moving = slot % 2 == 1
-        for attempt in range(50):
-            arm = generator.uniform(limits[:, 0] + 0.15, limits[:, 1] - 0.15)
-            commands = command_sequence(generator, arm, limits, family)
-            yaw = generator.uniform(-np.pi, np.pi)
-            arm_velocity = generator.uniform(-0.5, 0.5, 2) if generator.random() < 0.7 else np.zeros(2)
-            arm_velocity = np.where((arm < limits[:, 0] + 0.3) | (arm > limits[:, 1] - 0.3), 0, arm_velocity)
-            angle = generator.uniform(-np.pi, np.pi)
-            speed = generator.uniform(0.02, 0.15) if moving else 0
-            cube_velocity = np.array([speed * np.cos(angle), speed * np.sin(angle), generator.uniform(-1, 1) if moving else 0])
-            if targeted:
-                waypoint = int(generator.integers(1, 8))
-                cube = tip_position(commands[waypoint], lengths) + generator.uniform(-0.015, 0.015, 2)
-            else:
-                random_pose = generator.uniform(limits[:, 0] + 0.15, limits[:, 1] - 0.15)
-                cube = tip_position(random_pose, lengths)
-            if np.linalg.norm(cube) < 0.12:
-                rejected["initialization"] += 1
-                continue
-            try:
-                initial = simulation.initialize(arm, cube, yaw, arm_velocity, cube_velocity)
-            except ValueError:
-                rejected["initialization"] += 1
-                continue
-            states[episode, 0] = initial
-            joint_violation = False
-            for step in range(200):
-                action = commands[step // 5]
-                actions[episode, step] = action
-                starting[episode, step] = simulation.contact()
-                simulation.data.ctrl[simulation.actuator_ids] = action
-                for substep in range(10):
-                    mujoco.mj_step(simulation.model, simulation.data)
-                    mujoco.mj_forward(simulation.model, simulation.data)
-                    contacts[episode, step, substep] = simulation.contact()
-                    q = simulation.data.qpos[simulation.qpos_indices]
-                    joint_violation |= bool(np.any(q < limits[:, 0] - 1e-4) or np.any(q > limits[:, 1] + 1e-4))
-                states[episode, step + 1] = simulation.extract()
-            trajectory = states[episode]
-            # Reject impacts with hard stops rather than training outside this experiment's regime.
-            if joint_violation:
-                rejected["joint_limits"] += 1
-                continue
-            if not np.all(np.ptp(trajectory[:, :2], axis=0) >= np.deg2rad(15)):
-                rejected["motion"] += 1
-                continue
-            contact_fraction = contacts[episode].reshape(40, 50).any(axis=-1).mean()
-            displacement = np.linalg.norm(trajectory[-1, 4:6] - trajectory[0, 4:6])
-            if targeted and (contact_fraction < 0.225 or displacement <= 0.02):
-                rejected["contact"] += 1
-                continue
-            specs.append({"targeted": targeted, "moving_start": moving, "attempts": attempt + 1,
-                          "initial_arm": arm.tolist(), "initial_cube_xy": cube.tolist(), "initial_cube_yaw": yaw,
-                          "initial_arm_velocity": arm_velocity.tolist(), "initial_cube_velocity": cube_velocity.tolist()})
-            break
-        else:
-            raise RuntimeError(f"No valid episode {episode} ({FAMILIES[family]}) after 50 attempts: {rejected}")
-        if (episode + 1) % 20 == 0:
-            print(f"Varied collection {episode+1}/{episodes}; rejections={rejected}", flush=True)
+    kinds = np.arange(episodes) % len(FAMILIES)
+    specs = [None] * episodes
+    rejected = {"initialization": 0, "joint_limits": 0, "motion": 0, "contact": 0}
+    tasks = ((seed, episode) for episode in range(episodes))
+    for completed, result in enumerate(collect_tasks(_collect_varied_episode, tasks, workers), 1):
+        episode, state, action, contact, start, spec, rejection = result
+        states[episode], actions[episode], contacts[episode], starting[episode] = state, action, contact, start
+        specs[episode] = spec
+        for key in rejected:
+            rejected[key] += rejection[key]
+        if completed % 20 == 0:
+            print(f"Varied collection {completed}/{episodes}; rejections={rejected}", flush=True)
+    collection_seconds = time.perf_counter() - collection_started
     split = np.empty(episodes, dtype=int)
     per_family = episodes // 4
     validation_total = int(episodes * 0.15)
@@ -210,7 +234,7 @@ def collect_varied(path, episodes=1200, seed=191):
         second = first + validation_base + int(kind < validation_extra)
         split[indices[:first]], split[indices[first:second]], split[indices[second:]] = 0, 1, 2
     metadata = {"base_dt": BASE_DT, "seed": seed, "episodes": episodes, "model_hash": model_hash(),
-                "lengths": lengths, "kinds": FAMILIES, "collector": "varied_v2",
+                "lengths": lengths, "kinds": FAMILIES, "collector": "varied_v3", "rng_scheme": RNG_SCHEME,
                 "data_sha256": hashlib.sha256(states.tobytes() + actions.tobytes() + split.tobytes()).hexdigest(),
                 "state": "arm q2, arm v2, cube XYZ3, sin_yaw, cos_yaw, cube world v3, yaw_rate",
                 "action": "absolute shoulder/elbow position targets in radians; held 100 ms",
@@ -223,7 +247,9 @@ def collect_varied(path, episodes=1200, seed=191):
     check_coverage(summary)
     path.parent.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(path, **{k: v for k, v in dataset.items() if k != "metadata"}, metadata=json.dumps(metadata))
-    summary.update(metadata=metadata, rejection_counts=rejected, sampling=specs)
+    summary.update(metadata=metadata, rejection_counts=rejected, sampling=specs,
+                   execution={"workers_requested": workers, "workers_used": effective_workers(workers, episodes),
+                              "collection_seconds": collection_seconds})
     path.with_suffix(".json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     print(json.dumps({k: v for k, v in summary.items() if k not in ("sampling", "metadata")}, indent=2), flush=True)
     return dataset
@@ -272,6 +298,7 @@ def main():
     parser.add_argument("--dataset", type=Path, default=DATASET)
     parser.add_argument("--output", type=Path, default=OUTPUT)
     parser.add_argument("--episodes", type=int, default=1200)
+    parser.add_argument("--workers", type=int, default=DEFAULT_WORKERS, help="Collection processes; use 1 for sequential collection")
     parser.add_argument("--seed", type=int, default=191)
     parser.add_argument("--epochs", type=int)
     parser.add_argument("--checkpoint", type=Path)
@@ -279,11 +306,11 @@ def main():
     args = parser.parse_args()
     torch.set_num_threads(2)
     if args.command == "collect":
-        collect_varied(args.dataset, args.episodes, args.seed)
+        collect_varied(args.dataset, args.episodes, args.seed, workers=args.workers)
         return
     dataset = load_dataset(args.dataset)
-    if dataset["metadata"].get("collector") != "varied_v2":
-        raise ValueError("This command requires a varied_v2 dataset; use contact_learning for older data")
+    if dataset["metadata"].get("collector") not in ("varied_v2", "varied_v3"):
+        raise ValueError("This command requires a varied dataset; use contact_learning for older data")
     if args.command in ("train", "refine") and args.output.exists():
         raise FileExistsError(f"Use a new output directory: {args.output}")
     if args.command == "train":

@@ -39,10 +39,11 @@ def test_varied_evaluation_rejects_potential_episode_overlap(tmp_path, monkeypat
 
 def test_varied_collection_reproducible_and_coverage(tmp_path):
     path = tmp_path / "varied.npz"
-    first = collect_varied(path, episodes=40, seed=191)
-    second = collect_varied(tmp_path / "repeated.npz", episodes=40, seed=191)
+    first = collect_varied(path, episodes=40, seed=191, workers=1)
+    second = collect_varied(tmp_path / "repeated.npz", episodes=40, seed=191, workers=8)
     for key in ("states", "actions", "contacts", "starting_contact", "split", "kinds"):
         np.testing.assert_array_equal(first[key], second[key])
+    assert first["metadata"] == second["metadata"]
     check_coverage(summarize(first))
     for split in range(3):
         assert set(first["kinds"][first["split"] == split]) == set(range(4))

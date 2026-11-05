@@ -698,8 +698,280 @@ Initial median batch times were 3.08 s sequential, 1.74 s with two workers and
 0.91 s with four: **1.77x / 3.40x steady throughput**. Startup/warm-up took
 2.09/2.81/3.44 s respectively. These short measurements cover accepted-episode
 simulation/checking; placement search, rejected candidates, dataset writing and
-training are excluded. The production collector remains sequential.
+training are excluded. A later matched 1/4/8-worker run took 2.50/0.70/0.47 s,
+with 5.00 s startup for eight workers. These are short-run measurements;
+parallel collection support is described below.
+
+### Parallel collections
+
+Future collections through `simple_arm.contact_boundary collect` and
+`simple_arm.contact_varied collect` now default to **8 worker processes**, capped
+at the available logical CPU count. Use `--workers 4` to use fewer processes or
+`--workers 1` for sequential execution. Training retains its existing two-thread
+setting. The legacy arm-only and original six-family contact collectors retain
+their existing behavior.
+
+Choose new output names to preserve previous experiments:
+
+```powershell
+.\.venv\Scripts\python.exe -m simple_arm.contact_boundary collect --groups 40 --seed 401 --workers 8 --output data/arm_cube_contact_boundary/future_parallel.npz
+.\.venv\Scripts\python.exe -m simple_arm.contact_varied collect --episodes 120 --seed 401 --workers 8 --dataset data/arm_cube_varied_future.npz
+```
+
+Each process owns a MuJoCo model/data pair and reuses it across tasks. All four
+related boundary episodes run together as one task. Only the parent assembles
+and writes the final dataset after every task succeeds; task errors or Ctrl+C
+during collection terminate the pool. Progress reports completed tasks. The JSON
+summary records requested/actual workers and `collection_seconds`, covering
+pool startup, sampling and simulation before compression/writing. Each process
+also loads its own Python dependencies, so fewer workers reduce memory use.
+
+Randomness now comes from independent seeded streams for each episode/group and
+for dataset splitting. With the same seed, size and collector version, changing
+the worker count preserves all saved numerical arrays, sample order, diagnostics,
+splits and dataset metadata. Runtime information stays in the JSON summary,
+outside model/dataset identity. One-versus-eight-worker full collections are
+tested for exact equality, along with worker-error cleanup.
+
+All **39 tests passed** after this change. Complete collection smoke tests,
+including sampling/rejections, physics diagnostics, result assembly and pool
+startup, took **38.52 s versus 16.81 s** for 40 boundary groups (2.29x), and
+**13.01 s versus 10.37 s** for 40 broad episodes (1.26x), using one versus eight
+workers. These are single small-run measurements before file compression;
+startup is a larger fraction than it will be in larger collections. The accepted
+episode benchmark above excludes search/rejection and has a different workload.
+
+This changes the sampling sequence relative to historical runs even with
+`--workers 1`. New collectors identify themselves as `contact_boundary_v2` and
+`varied_v3`, with `rng_scheme=seed_sequence_per_unit_v1`; the historical reports
+above describe the original versions. Existing datasets/checkpoints remain
+unchanged and loadable. New datasets still refuse to overwrite existing files.
+Use a new seed for independent evaluation.
+
+The module commands already provide the Windows multiprocessing entry-point
+guard. When calling these APIs from your own Python script, put the collection
+call inside `if __name__ == "__main__":`.
+
+### Quick capacity screening
+
+The completed [capacity screen](CAPACITY_SCREEN_REPORT.md) reuses the original
+99,200-transition dataset and splits, without collecting trajectories. It trains
+128/256/512-wide controls for the same 12 epochs / 3,264 Adam updates, and compares
+them with both frozen historical 128-wide checkpoints. All models retain three
+SiLU layers, the same state/action representation, normalization and loss.
+
+Medium/large one-step-only four-second cube errors were **13.05/12.33 cm**, versus
+17.89 cm for the matched short 128 control and 9.25 cm for the existing recursively
+refined model. Training took **16.5/45.4 seconds**. Medium is the compute-efficient
+candidate for full one-step + recursive follow-up; large has stronger clear-push
+results but higher cost. Neither replaces the existing refined model.
+
+```powershell
+.\.venv\Scripts\python.exe -m simple_arm.capacity_screen --epochs 12 --output runs/arm_cube_capacity_screen_repeat
+```
+
+The screen refuses to overwrite an existing output directory. Checkpoints,
+histories, timing metrics, predictions and plots are under
+`runs/arm_cube_capacity_screen/`. Historical training times are unavailable and
+are not reconstructed; short-run versus recursively refined results are labeled
+separately. See the report for limits, no-contact drift and clear-push metrics.
+
+### Recursive follow-up for medium and large
+
+The [recursive capacity follow-up](CAPACITY_REFINEMENT_REPORT.md) adds ten
+recursive epochs to each saved medium/large screen checkpoint, with the same
+data/splits, update counts and batch order. Four-second cube error improves
+**13.05 → 8.00 cm for medium** and **12.33 → 8.40 cm for large**. Mean maximum
+no-contact drift improves **78.3 → 20.8 mm** and **64.5 → 16.8 mm** respectively.
+False drift is still present. Medium took 74 s to refine; large took 206 s and
+has better clear-push accuracy but slightly worse aggregate four-second error.
+
+```powershell
+.\.venv\Scripts\python.exe -m simple_arm.capacity_refinement --epochs 10 --output runs/arm_cube_capacity_refinement_repeat
+.\.venv\Scripts\python.exe -m simple_arm.contact_viewer --run runs/arm_cube_capacity_refinement/evaluations/medium_256
+```
+
+New checkpoints, metrics and before/after plots are under
+`runs/arm_cube_capacity_refinement/`. Prior capacity-screen models, datasets,
+normalization and viewer defaults remain unchanged. This was a bounded follow-up,
+not an 80-epoch recursive training run; seven NN tests passed with no collection.
 
 ```powershell
 .\.venv\Scripts\python.exe -m simple_arm.contact_viewer --run runs/arm_cube_varied_unseen_recursive
 ```
+
+### Learned CEM cube pushing
+
+The [initial CEM experiment](CUBE_CEM_INITIAL_REPORT.md) uses the frozen refined
+Medium model to plan cube pushes, executes one 100 ms command, observes physics
+and replans. It adds no training or training-data collection.
+
+```powershell
+.\.venv\Scripts\python.exe -m simple_arm.cube_mpc view --command-rate-limit 0
+.\.venv\Scripts\python.exe -m simple_arm.cube_mpc view --episode 99 --target 0.36 0.09 --command-rate-limit 0
+.\.venv\Scripts\python.exe -m simple_arm.cube_mpc view --mode no-action --command-rate-limit 0
+.\.venv\Scripts\python.exe -m simple_arm.cube_mpc evaluate --output runs/cube_cem_repeat --command-rate-limit 0
+```
+
+Viewer controls: 6/7 move target X by -/+2 cm, 8/9 move target Y by -/+2 cm,
+Enter resets the scenario. Green marks the target; magenta shows the selected
+neural trajectory and translucent endpoint forecast. `--checkpoint` selects
+another compatible 100 ms model; `--help` lists all CEM settings.
+
+The saved benchmark in `runs/cube_cem_initial/` contains twelve five-second CEM
+runs and four hold baselines, full traces, diagnostics and four plots. Two CEM
+runs succeeded; eight improved final distance over hold. Sixty first steps
+showed >=5 mm predicted motion with <=1 mm actual motion. Mean planning time
+was 53.7 ms, with two 100 ms deadline overruns across 600 plans. Forecasts remain
+unverified and failures are preserved. Existing output directories are refused.
+
+### Experimental workspace-aware CEM score
+
+An optional score adds joint-limited geometric reach, excessive cube speed,
+outward escape risk, and terminal cube position/velocity penalties. All added
+weights are configurable; CEM sampling, horizon and execution are unchanged.
+
+```powershell
+.\.venv\Scripts\python.exe -m simple_arm.cube_mpc view --episode 23 --seed 42 --scoring workspace --command-rate-limit 0
+.\.venv\Scripts\python.exe -m simple_arm.cube_mpc view --episode 23 --seed 42 --scoring original --command-rate-limit 0
+.\.venv\Scripts\python.exe -m simple_arm.cube_mpc compare --output runs/cube_cem_workspace_repeat --command-rate-limit 0
+```
+
+The [paired comparison report](CUBE_CEM_WORKSPACE_REPORT.md) includes all weights,
+workspace derivation, actual paths and score contributions. The added score
+prevents the known episode 23/seed 42 escape but introduces another escape;
+success falls from 2/12 to 0/12 and mean final distance rises from 7.64 to
+15.09 cm. **The original score remains the default.** Results, failures and
+per-step score breakdowns are preserved in `runs/cube_cem_workspace/`.
+
+### Stationary-supervised Medium world model
+
+The [stationary training experiment](STATIONARY_TRAINING_REPORT.md) compares the
+frozen refined Medium model, original-objective continuation, and stationary
+loss with 10/20-step recursive training. It uses the same saved 99,200-transition
+dataset, unchanged splits/normalization, and no new simulation collection.
+
+```powershell
+.\.venv\Scripts\python.exe -m simple_arm.stationary_experiment --output runs/arm_cube_stationary_repeat --stationary-threshold 0.002 --stationary-weight 1.0
+.\.venv\Scripts\python.exe -m simple_arm.contact_viewer --run runs/arm_cube_stationary_experiment/evaluations/boundary/stationary_20
+```
+
+The 20-step stationary model reduces mean no-contact drift by 43% on independent
+boundary cases and 33% on broad cases. Four-second push error changes by +1.4%
+and -16.7%, respectively, while clear-push one-step error worsens slightly.
+Almost all stationary cases still exceed 2 mm false motion. The report includes
+teacher-forced versus autoregressive diagnostics and recommends
+`runs/arm_cube_stationary_experiment/stationary_20/model.pt` for the next paired
+CEM test. Existing model/controller defaults remain unchanged.
+
+### Slower CEM commands
+
+The [command-rate experiment](CUBE_COMMAND_RATE_REPORT.md) adds a configurable
+position-target slew limit, enforced on every candidate before model prediction.
+Use the tested stationary-20 model with a 0.5 rad/s limit per joint:
+
+```powershell
+.\.venv\Scripts\python.exe -m simple_arm.cube_mpc view --checkpoint runs/arm_cube_stationary_experiment/stationary_20/model.pt --command-rate-limit 0.5
+.\.venv\Scripts\python.exe -m simple_arm.cube_mpc compare-rate --command-rate-limit 0.5 --output runs/cube_cem_command_rate_repeat
+```
+
+On identical seeded scenarios with that model and the original score, success
+improves from 3/12 to 10/12, escapes fall from 4/12 to zero, and mean final
+distance falls from 13.05 to 1.16 cm. Peak actual cube speed falls from 2.46 to
+0.41 m/s. The two remaining failures are episode 23. Full traces and plots are
+in `runs/cube_cem_command_rate/`. The shared cube-MPC default is now 0.2 rad/s per joint.
+Pass `--command-rate-limit 0` to reproduce historical unlimited commands. A target slew bound does not directly bound
+physical joint or cube velocity.
+
+### Training from 0.2 rad/s movements
+
+The [slow-motion fine-tuning report](SLOW_RATE_02_TRAINING_REPORT.md) collects
+1,280 slow episodes plus 160 independent evaluation episodes, then refines the
+stationary-20 model using slow data and 50% original-data replay. The new model
+reduces stationary drift but worsens slow-push endpoint prediction and paired
+MPC success (9/12 to 6/12 at the same 0.2 limit). Keep stationary-20 as the
+recommended controller model; the new checkpoint is available for inspection.
+
+```powershell
+.\.venv\Scripts\python.exe -m simple_arm.cube_mpc view --checkpoint runs/arm_cube_stationary_experiment/stationary_20/model.pt --command-rate-limit 0.2
+.\.venv\Scripts\python.exe -m simple_arm.cube_mpc view --checkpoint runs/arm_cube_slow_02_expanded/refined/model.pt --command-rate-limit 0.2
+.\.venv\Scripts\python.exe -m simple_arm.slow_training --groups 320 --rate 0.2 --output runs/arm_cube_slow_02_repeat
+```
+
+Commanded rates are capped at 0.2 rad/s; actual joints reached approximately
+0.264 rad/s in the collected states. Original physics, datasets, checkpoints
+and controller defaults remain unchanged. Full traces, training histories and
+prediction/control comparisons are preserved in the report's artifact paths.
+
+### Changing the cube spawn in the MPC viewer
+
+Append `--spawn-seed 43` to your existing `cube_mpc view` command for a new,
+reproducible cube position close to the arm and inside its kinematic workspace.
+Change the number for another position, or press **R** in the viewer to advance
+to another spawn. **Enter** restarts the currently selected spawn.
+
+Use `--cube X Y` instead for explicit world XY coordinates in meters, for
+example `--episode 99 --cube 0.40 0.05`. Robot-overlapping spawns are rejected.
+When the cube moves, the target is translated to preserve the original desired
+push displacement; supply `--target X Y` to choose the goal explicitly.
+
+`--seed` controls CEM search only; `--spawn-seed` controls placement. These flags
+affect the interactive viewer only. Benchmark initial states, targets, datasets,
+and checkpoints are unchanged. Preserve your existing `--checkpoint` and
+`--command-rate-limit 0.2` options when trying a new spawn.
+
+### One-step stationary-weighted Medium experiment
+
+The [one-step stationary report](ONE_STEP_STATIONARY_REPORT.md) compares 1x,
+5x, 20x and 100x stationary XY multipliers, starting from the frozen one-step-only
+Medium checkpoint. All four use the original 99,200 transitions and unchanged
+splits, 12 further epochs, fresh Adam, and identical batches (3,264 updates each).
+No data was collected and training uses ground truth inputs exclusively.
+
+```powershell
+.\.venv\Scripts\python.exe -m simple_arm.one_step_stationary --output runs/arm_cube_one_step_stationary_repeat
+```
+
+The CLI exposes `--source`, `--output`, `--epochs`, `--seed`, `--learning-rate`,
+`--batch-size`, `--speed-tolerance`, `--excursion-tolerance`, and `--multipliers`.
+It refuses existing output directories. Each run retains `final.pt` as the
+primary checkpoint and `best.pt` selected by unweighted validation, including
+epoch zero, as a secondary diagnostic. The loss retains all 12 displacement
+targets and their normalization, modifies only stationary XY coefficients, and
+preserves the existing 5x contact weighting. Stationarity requires speed <=0.005
+m/s and excursion <=0.0005 m across the actual start and all five saved 20 ms
+samples; small recorded displacement targets remain intact.
+
+The predefined rule recommends **5x**: stationary XY RMSE improves 30.1% on
+boundary data and 25.8% on broad-motion data versus the 1x final checkpoint,
+while contact-motion safeguards pass. The 20x and 100x runs fail safeguards.
+Every episode of both independent datasets was evaluated after training. The
+zero-XY reference is evaluation only. Autoregressive results remain diagnostics;
+this recommendation is not a deployment endorsement and does not switch the
+controller checkpoint. Artifacts and source-hash audits are under
+`runs/arm_cube_one_step_stationary/`; all existing datasets/checkpoints survived
+unchanged. The report lists rollout regressions separately.
+
+The shared cube-MPC command-rate default is **0.2 rad/s per joint**. Use
+`--command-rate-limit 0` for unlimited commands, including historical comparisons.
+This limits position-target slew; actuator physics and physical speed remain
+unchanged.
+
+### Longer single-step 5x continuation
+
+The [200-epoch continuation report](ONE_STEP_5X_200_REPORT.md) adds 200 single-step
+5x epochs starting from the previous 12-epoch 5x final checkpoint, using the same
+69,440 original mixed training transitions. The total stationary-weighted lineage
+is 212 epochs. Fresh Adam at 0.001, batch 256, seed 91, and two CPU threads were
+retained; 54,400 updates took 206.38 seconds. No collections were added.
+
+The fixed final checkpoint improves stationary XY RMSE by 24.0% on boundary data
+and 48.0% on broad data versus the previous 5x model. Moving-contact and clear-push
+errors also improve on both datasets, while 2mm missed-motion rates increase
+from 1.44% to 5.74% and from 1.57% to 5.15%, respectively. Best unweighted
+validation occurs at additional epoch 30 and is retained separately. Independent
+evaluation never selects a checkpoint; the controller checkpoint is unchanged.
+
+Artifacts: `runs/arm_cube_one_step_stationary_5x_200/`. Final model:
+`training/final.pt`; diagnostic best: `training/best.pt`. The source model,
+all pre-existing checkpoints, datasets, and actuator XML passed the hash audit.

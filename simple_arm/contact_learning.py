@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import time
 
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
@@ -148,8 +149,10 @@ def labels(dataset, stride):
             "sustained": previous_active & active, "release": release, "sliding": sliding}
 
 
-def make_model():
-    return nn.Sequential(nn.Linear(15, 128), nn.SiLU(), nn.Linear(128, 128), nn.SiLU(), nn.Linear(128, 128), nn.SiLU(), nn.Linear(128, 12)).cpu()
+def make_model(hidden_width=128):
+    if not isinstance(hidden_width, int) or isinstance(hidden_width, bool) or hidden_width < 1:
+        raise ValueError("hidden_width must be a positive integer")
+    return nn.Sequential(nn.Linear(15, hidden_width), nn.SiLU(), nn.Linear(hidden_width, hidden_width), nn.SiLU(), nn.Linear(hidden_width, hidden_width), nn.SiLU(), nn.Linear(hidden_width, 12)).cpu()
 
 
 def training_arrays(dataset, stride, split):
@@ -218,7 +221,7 @@ def load_predictor(path, expected_stride=None):
         raise ValueError("Contact checkpoint/model mismatch")
     if expected_stride is not None and checkpoint["stride"] != expected_stride:
         raise ValueError("Checkpoint prediction interval mismatch")
-    model = make_model().eval()
+    model = make_model(checkpoint.get("hidden_width", 128)).eval()
     model.load_state_dict(checkpoint["weights"])
 
     def predict(current, action):
@@ -243,13 +246,15 @@ def differentiable_next(model, current, action, checkpoint):
     return torch.cat([current[..., :7] + delta[..., :7], orientation, current[..., 9:] + delta[..., 8:]], dim=-1)
 
 
-def train_multistep(dataset, source, output, epochs=80):
+def train_multistep(dataset, source, output, epochs=80, *, shuffle_seed=None, validation_every=5):
     """Refine the 100 ms model using predicted-state feedback and validation rollouts."""
+    if epochs < 1 or validation_every < 1:
+        raise ValueError("epochs and validation_every must be positive")
     torch.manual_seed(93)
     checkpoint = torch.load(source, map_location="cpu", weights_only=True)
     if checkpoint["stride"] != 5 or checkpoint["metadata"] != dataset["metadata"]:
         raise ValueError("Refinement requires matching 100 ms dataset/checkpoint")
-    model = make_model()
+    model = make_model(checkpoint.get("hidden_width", 128))
     model.load_state_dict(checkpoint["weights"])
     optimizer = torch.optim.Adam(model.parameters(), lr=0.0002)
     states = torch.tensor(dataset["states"][dataset["split"] == 0, ::5], dtype=torch.float32)
@@ -263,6 +268,9 @@ def train_multistep(dataset, source, output, epochs=80):
     output = Path(output)
     output.mkdir(parents=True, exist_ok=True)
     best, history = float("inf"), []
+    shuffle = torch.Generator().manual_seed(shuffle_seed) if shuffle_seed is not None else None
+    epoch_timings, updates = [], 0
+    started = time.perf_counter()
 
     def validate():
         model.eval()
@@ -275,9 +283,10 @@ def train_multistep(dataset, source, output, epochs=80):
             return torch.stack(losses).mean().item()
 
     for epoch in range(epochs + 1):
+        epoch_started = time.perf_counter()
         if epoch:
             model.train()
-            for indices in torch.randperm(len(windows)).split(256):
+            for indices in torch.randperm(len(windows), generator=shuffle).split(256):
                 episode, start = windows[indices].T
                 current = states[episode, start]
                 loss = 0
@@ -291,15 +300,28 @@ def train_multistep(dataset, source, output, epochs=80):
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
                 optimizer.step()
-        if epoch % 5 == 0:
+                updates += 1
+        if epoch % validation_every == 0 or epoch == epochs:
             validation_loss = validate()
             history.append({"epoch": epoch, "validation_recursive_scaled_mse": validation_loss})
             if np.isfinite(validation_loss) and validation_loss < best:
                 best = validation_loss
-                saved = dict(checkpoint, weights=model.state_dict(), refinement_epoch=epoch, refinement="10-step recursive training; 40-step validation")
+                saved = dict(checkpoint, weights=model.state_dict(), refinement_epoch=epoch,
+                             refinement="10-step recursive training; 40-step validation",
+                             training_method="one_step_plus_recursive", recursive_epoch_cap=epochs,
+                             recursive_shuffle_seed=shuffle_seed, recursive_validation_every=validation_every)
                 torch.save(saved, output / "model.pt")
             print(f"recursive epoch={epoch} validation_rollout_loss={validation_loss:.5f}", flush=True)
+        if epoch:
+            epoch_timings.append(time.perf_counter() - epoch_started)
+    timing = {"epochs_run": epochs, "optimizer_updates": updates,
+              "updates_per_epoch": (len(windows) + 255) // 256,
+              "wall_seconds": time.perf_counter() - started, "epoch_seconds": epoch_timings,
+              "mean_epoch_seconds": float(np.mean(epoch_timings)),
+              "shuffle_seed": shuffle_seed, "validation_every": validation_every}
     (output / "refinement_history.json").write_text(json.dumps(history, indent=2), encoding="utf-8")
+    (output / "refinement_training.json").write_text(json.dumps(timing, indent=2), encoding="utf-8")
+    return timing
 
 
 def physical_errors(predicted, actual, initial):

@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import time
 
 import mujoco
 import numpy as np
@@ -12,6 +13,7 @@ import torch
 from .contact_learning import evaluate, load_dataset, load_predictor, physical_errors, rollout, train, train_multistep
 from .contact_simulation import ContactSimulation, link_lengths, model_hash
 from .contact_varied import command_sequence, tip_position
+from .collection_workers import DEFAULT_WORKERS, RNG_SCHEME, collect_tasks, effective_workers, get_simulation, unit_generator
 
 
 CATEGORIES = ["overhead", "near_miss", "light_contact", "clear_push"]
@@ -134,93 +136,109 @@ def group_split(groups, generator):
     return np.repeat(result, 4)
 
 
-def collect(path, groups=320, seed=291):
+def _collect_group(task):
+    seed, group = task
+    generator = unit_generator(seed, group, 10)
+    simulation = get_simulation()
+    lengths, limits = link_lengths(), simulation.action_limits
+    rejection = {"group_attempts": 0, "candidate_initialization": 0, "category_mismatch": 0}
+    accepted = None
+    candidate_attempts = np.zeros(4, dtype=int)
+    for attempt in range(100):
+        rejection["group_attempts"] += 1
+        arm = generator.uniform(limits[:, 0] + 0.2, limits[:, 1] - 0.2)
+        velocity = generator.uniform(-0.3, 0.3, 2) if generator.random() < 0.5 else np.zeros(2)
+        commands = command_sequence(generator, arm, limits, group % 4)
+        # One varied approach followed by a hold exposes release/settling and
+        # avoids repeatedly crossing the same candidate contact boundary.
+        stop = int(generator.integers(10, 21))
+        commands[stop:] = commands[stop - 1]
+        yaw = generator.uniform(-np.pi, np.pi)
+        try:
+            *_, qtrace = simulate(simulation, arm, [0.8, 0.8], yaw, velocity, commands, diagnostics=False)
+        except ValueError:
+            continue
+        trace = tip_position(qtrace, lengths)
+        index = int(generator.integers(100, min(900, stop * 50)))
+        tangent = trace[index + 10] - trace[index - 10]
+        if np.linalg.norm(tangent) < 0.001:
+            continue
+        normal = generator.choice([-1, 1]) * np.array([-tangent[1], tangent[0]]) / np.linalg.norm(tangent)
+        point = trace[index]
+        candidates = []
+        # Horizontal link passes: sample interior points along either link.
+        q = qtrace[index]
+        elbow = lengths[0] * np.array([np.cos(q[0]), np.sin(q[0])])
+        for fraction in (0.6, 0.8, 0.4):
+            candidates.append((0, fraction * elbow))
+            candidates.append((0, elbow + fraction * (point - elbow)))
+        try:
+            for gap in generator.permutation([0.001, 0.0025, 0.004]):
+                candidates.append((1, point + boundary_offset(trace, point, normal, yaw, gap) * normal))
+            for gap in (-0.00025, -0.00075, -0.002, -0.005, -0.01):
+                candidates.append((2, point + boundary_offset(trace, point, normal, yaw, gap) * normal))
+            edge = boundary_offset(trace, point, normal, yaw, 0.)
+            for factor in (0.5, 0.25, 0.):
+                candidates.append((3, point + factor * edge * normal))
+        except ValueError:
+            continue
+        found = {}
+        for category, cube in candidates:
+            if category in found or np.linalg.norm(cube) < 0.12:
+                continue
+            if candidate_attempts[category] >= 100:
+                raise RuntimeError(f"Group {group}: category {CATEGORIES[category]} exhausted 100 candidate attempts")
+            candidate_attempts[category] += 1
+            try:
+                result = simulate(simulation, arm, cube, yaw, velocity, commands)
+            except ValueError:
+                rejection["candidate_initialization"] += 1
+                continue
+            if classify(result[3])[category]:
+                found[category] = result
+            else:
+                rejection["category_mismatch"] += 1
+        if len(found) == 4:
+            accepted = found
+            break
+    if accepted is None:
+        raise RuntimeError(f"Group {group} failed after 100 attempts: {rejection}")
+    return group, {key: value[:4] for key, value in accepted.items()}, np.repeat(commands, 5, axis=0), rejection
+
+
+def collect(path, groups=320, seed=291, *, workers=DEFAULT_WORKERS):
     path = Path(path)
     if path.exists() or path.with_suffix(".json").exists():
         raise FileExistsError(path)
-    generator = np.random.default_rng(seed)
-    split = group_split(groups, generator)
-    simulation = ContactSimulation()
-    lengths, limits = link_lengths(), simulation.action_limits
-    all_states, all_actions, all_contacts, all_starting, all_diagnostics = [], [], [], [], []
+    effective_workers(workers, groups)
+    collection_started = time.perf_counter()
+    split = group_split(groups, unit_generator(seed, 0, 11))
+    lengths = link_lengths()
+    all_states = np.empty((groups * 4, 201, 13))
+    all_actions = np.empty((groups * 4, 200, 2))
+    all_contacts = np.empty((groups * 4, 200, 10), dtype=bool)
+    all_starting = np.empty((groups * 4, 200), dtype=bool)
+    all_diagnostics = np.empty((groups * 4, 6))
     rejection = {"group_attempts": 0, "candidate_initialization": 0, "category_mismatch": 0}
-    for group in range(groups):
-        accepted = None
-        candidate_attempts = np.zeros(4, dtype=int)
-        for attempt in range(100):
-            rejection["group_attempts"] += 1
-            arm = generator.uniform(limits[:, 0] + 0.2, limits[:, 1] - 0.2)
-            velocity = generator.uniform(-0.3, 0.3, 2) if generator.random() < 0.5 else np.zeros(2)
-            commands = command_sequence(generator, arm, limits, group % 4)
-            # One varied approach followed by a hold exposes release/settling and
-            # avoids repeatedly crossing the same candidate contact boundary.
-            stop = int(generator.integers(10, 21))
-            commands[stop:] = commands[stop - 1]
-            yaw = generator.uniform(-np.pi, np.pi)
-            try:
-                *_, qtrace = simulate(simulation, arm, [0.8, 0.8], yaw, velocity, commands, diagnostics=False)
-            except ValueError:
-                continue
-            trace = tip_position(qtrace, lengths)
-            index = int(generator.integers(100, min(900, stop * 50)))
-            tangent = trace[index + 10] - trace[index - 10]
-            if np.linalg.norm(tangent) < 0.001:
-                continue
-            normal = generator.choice([-1, 1]) * np.array([-tangent[1], tangent[0]]) / np.linalg.norm(tangent)
-            point = trace[index]
-            candidates = []
-            # Horizontal link passes: sample interior points along either link.
-            q = qtrace[index]
-            elbow = lengths[0] * np.array([np.cos(q[0]), np.sin(q[0])])
-            for fraction in (0.6, 0.8, 0.4):
-                candidates.append((0, fraction * elbow))
-                candidates.append((0, elbow + fraction * (point - elbow)))
-            try:
-                for gap in generator.permutation([0.001, 0.0025, 0.004]):
-                    candidates.append((1, point + boundary_offset(trace, point, normal, yaw, gap) * normal))
-                for gap in (-0.00025, -0.00075, -0.002, -0.005, -0.01):
-                    candidates.append((2, point + boundary_offset(trace, point, normal, yaw, gap) * normal))
-                edge = boundary_offset(trace, point, normal, yaw, 0.)
-                for factor in (0.5, 0.25, 0.):
-                    candidates.append((3, point + factor * edge * normal))
-            except ValueError:
-                continue
-            found = {}
-            for category, cube in candidates:
-                if category in found or np.linalg.norm(cube) < 0.12:
-                    continue
-                if candidate_attempts[category] >= 100:
-                    raise RuntimeError(f"Group {group}: category {CATEGORIES[category]} exhausted 100 candidate attempts")
-                candidate_attempts[category] += 1
-                try:
-                    result = simulate(simulation, arm, cube, yaw, velocity, commands)
-                except ValueError:
-                    rejection["candidate_initialization"] += 1
-                    continue
-                if classify(result[3])[category]:
-                    found[category] = result
-                else:
-                    rejection["category_mismatch"] += 1
-            if len(found) == 4:
-                accepted = found
-                break
-        if accepted is None:
-            raise RuntimeError(f"Group {group} failed after 100 attempts: {rejection}")
+    tasks = ((seed, group) for group in range(groups))
+    for completed, (group, accepted, commands, rejected) in enumerate(collect_tasks(_collect_group, tasks, workers), 1):
+        for key in rejection:
+            rejection[key] += rejected[key]
         for category in range(4):
-            states, contacts, starting, diagnostic, _ = accepted[category]
-            all_states.append(states)
-            all_actions.append(np.repeat(commands, 5, axis=0))
-            all_contacts.append(contacts)
-            all_starting.append(starting)
-            all_diagnostics.append(diagnostic)
-        if (group + 1) % 4 == 0:
-            print(f"Boundary groups {group+1}/{groups}; {rejection}", flush=True)
+            index = group * 4 + category
+            states, contacts, starting, diagnostic = accepted[category]
+            all_states[index], all_actions[index] = states, commands
+            all_contacts[index], all_starting[index] = contacts, starting
+            all_diagnostics[index] = diagnostic
+        if completed % 4 == 0:
+            print(f"Boundary groups {completed}/{groups}; {rejection}", flush=True)
+    collection_seconds = time.perf_counter() - collection_started
     dataset = dict(states=np.asarray(all_states), actions=np.asarray(all_actions), contacts=np.asarray(all_contacts),
                    starting_contact=np.asarray(all_starting), split=split, kinds=np.tile(np.arange(4), groups),
                    group_ids=np.repeat(np.arange(groups), 4), diagnostics=np.asarray(all_diagnostics),
                    family=np.repeat(np.arange(groups) % 4, 4))
     dataset["metadata"] = {"seed": seed, "episodes": groups * 4, "base_dt": 0.02, "physics_dt": 0.002,
-                           "model_hash": model_hash(), "lengths": lengths, "collector": "contact_boundary_v1",
+                           "model_hash": model_hash(), "lengths": lengths, "collector": "contact_boundary_v2", "rng_scheme": RNG_SCHEME,
                            "kinds": CATEGORIES, "diagnostic_columns": ["max_excursion_m", "contact_duration_s", "upper_gap_m", "lower_gap_m", "pusher_gap_m", "overhead_witness"],
                            "paired_groups": True, "mass_kg": 0.1, "friction": 0.7,
                            "state": "arm q2, arm v2, cube XYZ3, sin_yaw, cos_yaw, cube world v3, yaw_rate",
@@ -229,6 +247,8 @@ def collect(path, groups=320, seed=291):
                "category_counts": {name: groups for name in CATEGORIES}, "rejections": rejection,
                "diagnostic_ranges": {name: {"min": dataset["diagnostics"][i::4].min(axis=0).tolist(),
                                                "max": dataset["diagnostics"][i::4].max(axis=0).tolist()} for i, name in enumerate(CATEGORIES)}}
+    summary["execution"] = {"workers_requested": workers, "workers_used": effective_workers(workers, groups),
+                            "collection_seconds": collection_seconds}
     save_dataset(path, dataset, summary)
     print(json.dumps(summary, indent=2), flush=True)
     return dataset
@@ -331,6 +351,7 @@ def main():
     parser.add_argument("--broad", type=Path, default=Path("data/arm_cube_dynamics_varied.npz"))
     parser.add_argument("--output", type=Path)
     parser.add_argument("--groups", type=int, default=320)
+    parser.add_argument("--workers", type=int, default=DEFAULT_WORKERS, help="Collection processes; use 1 for sequential collection")
     parser.add_argument("--seed", type=int, default=291)
     parser.add_argument("--epochs", type=int)
     parser.add_argument("--checkpoint", type=Path)
@@ -340,7 +361,7 @@ def main():
     if args.command == "compare":
         compare_results(args.output or RUN)
     elif args.command == "collect":
-        collect(args.output or args.focused, args.groups, args.seed)
+        collect(args.output or args.focused, args.groups, args.seed, workers=args.workers)
     elif args.command == "merge":
         merge(args.focused, args.broad, args.output or args.dataset)
     else:
