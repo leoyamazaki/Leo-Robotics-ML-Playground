@@ -1,0 +1,13 @@
+{
+  "episodes": 280,
+  "splits": [
+    196,
+    42,
+    42
+  ],
+  "original_splits_preserved": true,
+  "parents": [
+    "data\\arm_cube_rate_02_pilot\\broad.npz",
+    "data\\arm_cube_rate_02_pilot\\focused.npz"
+  ]
+}

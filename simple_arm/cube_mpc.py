@@ -9,7 +9,8 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from .contact_learning import BASE_DT, differentiable_next, make_model
+from .contact_learning import BASE_DT, differentiable_next
+from .contact_models import model_from_checkpoint
 from .contact_simulation import link_lengths, model_hash
 
 
@@ -87,7 +88,7 @@ class ModelAdapter:
                 raise ValueError(f"Invalid normalization: {name}")
             if name.endswith("scale") and not (value > 0).all():
                 raise ValueError("Normalization scales must be positive")
-        self.model = make_model(c.get("hidden_width", 128)).eval()
+        self.model = model_from_checkpoint(c).eval()
         self.model.load_state_dict(c["weights"])
         self.model.requires_grad_(False)
 

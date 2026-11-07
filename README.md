@@ -1,5 +1,21 @@
 # First MuJoCo arm
 
+For larger networks on an NVIDIA desktop with continued CPU training on the
+Intel laptop, see [CUDA and portable training](CUDA_TRAINING.md).
+
+The [base-relative residual experiment](RESIDUAL_TRAINING.md) adds a 4.75M-parameter
+model, one-step training, recursive refinement, portable continuation and paired
+evaluation. It requires a saved mixed dataset; controller defaults stay unchanged.
+
+The [regenerated 0.2 rad/s dataset](DATASET_02_REPORT.md) is now available locally
+for a new experiment, including independent boundary and broad evaluation sets.
+
+[Online training](ONLINE_TRAINING.md) generates fresh random physics episodes,
+uses bounded replay with a 10% boundary supplement, and trains with unweighted
+losses in both stages. It includes a quiet progress display and live status page.
+The [first million-transition results](ONLINE_TRAINING_REPORT.md) include paired
+rollout gains, one-step regressions, coverage statistics and continuation artifacts.
+
 A native Windows simulation of a two-joint horizontal pushing arm. Physics runs
 on the CPU; the interactive viewer uses OpenGL on the Intel integrated GPU.
 

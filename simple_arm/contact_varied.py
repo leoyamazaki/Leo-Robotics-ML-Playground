@@ -3,12 +3,15 @@
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
+import sys
 import time
 
 import mujoco
 import numpy as np
 import torch
+from tqdm import tqdm
 
 from .contact_learning import (
     BASE_DT, evaluate, labels, load_dataset, load_predictor, physical_errors,
@@ -74,6 +77,37 @@ def command_sequence(generator, arm, limits, family):
     return np.asarray(commands)
 
 
+def limited_commands(generator, arm, limits, family, rate):
+    """Long randomized sweeps/pauses/reversals with no initial target jump."""
+    if not np.isfinite(rate) or rate <= 0:
+        raise ValueError("command rate must be positive and finite")
+    low, high = limits[:, 0] + .15, limits[:, 1] - .15
+    target = np.asarray(arm, dtype=float).copy()
+    direction = generator.choice([-1., 1.], 2)
+    direction = np.where(arm < low + .6, 1., np.where(arm > high - .6, -1., direction))
+    speed = generator.uniform(.85 * rate, rate, 2)
+    if family == 2:
+        speed[:] = generator.uniform(.9 * rate, rate)
+    reversal = int(generator.integers(20, 25))
+    pause = int(generator.integers(28, 35))
+    desired = target.copy()
+    commands = []
+    for step in range(40):
+        sign = -direction if family == 3 and step >= reversal else direction
+        if family == 1:
+            # Abrupt desired goals are passed through the same slew limiter.
+            if step == 0 or step == 25:
+                desired = np.clip(target + (direction if step == 0 else -direction) * generator.uniform(.5, 1.2, 2), low, high)
+        else:
+            ramp = min(1., (step + 1) / 4) if family == 0 else 1.
+            desired = target + .1 * speed * sign * ramp
+            if family == 0 and pause <= step < pause + 3:
+                desired = target.copy()
+        target = target + np.clip(np.clip(desired, low, high) - target, -.1 * rate, .1 * rate)
+        commands.append(target.copy())
+    return np.asarray(commands)
+
+
 def summarize(dataset):
     states, actions = dataset["states"], dataset["actions"][:, ::5]
     contact = dataset["contacts"].reshape(len(states), 40, 50).any(axis=-1)
@@ -124,7 +158,8 @@ def check_coverage(summary):
 
 
 def _collect_varied_episode(task):
-    seed, episode = task
+    seed, episode, *options = task
+    rate = options[0] if options else None
     generator = unit_generator(seed, episode, 20)
     simulation = get_simulation()
     lengths, limits = link_lengths(), simulation.action_limits
@@ -140,15 +175,17 @@ def _collect_varied_episode(task):
     moving = slot % 2 == 1
     for attempt in range(50):
         arm = generator.uniform(limits[:, 0] + 0.15, limits[:, 1] - 0.15)
-        commands = command_sequence(generator, arm, limits, family)
+        commands = command_sequence(generator, arm, limits, family) if rate is None else limited_commands(generator, arm, limits, family, rate)
         yaw = generator.uniform(-np.pi, np.pi)
         arm_velocity = generator.uniform(-0.5, 0.5, 2) if generator.random() < 0.7 else np.zeros(2)
         arm_velocity = np.where((arm < limits[:, 0] + 0.3) | (arm > limits[:, 1] - 0.3), 0, arm_velocity)
+        if rate is not None:
+            arm_velocity = np.zeros(2)
         angle = generator.uniform(-np.pi, np.pi)
         speed = generator.uniform(0.02, 0.15) if moving else 0
         cube_velocity = np.array([speed * np.cos(angle), speed * np.sin(angle), generator.uniform(-1, 1) if moving else 0])
         if targeted:
-            waypoint = int(generator.integers(1, 8))
+            waypoint = int(generator.integers(1, 8) if rate is None else generator.integers(8, 28))
             cube = tip_position(commands[waypoint], lengths) + generator.uniform(-0.015, 0.015, 2)
         else:
             random_pose = generator.uniform(limits[:, 0] + 0.15, limits[:, 1] - 0.15)
@@ -197,7 +234,7 @@ def _collect_varied_episode(task):
     return episode, states[0], actions[0], contacts[0], starting[0], specs[0], rejected
 
 
-def collect_varied(path, episodes=1200, seed=191, *, workers=DEFAULT_WORKERS):
+def collect_varied(path, episodes=1200, seed=191, *, workers=DEFAULT_WORKERS, command_rate=None):
     if episodes < 40 or episodes % 40:
         raise ValueError("Use a multiple of 40 episodes for balanced families and 70/15/15 splits")
     path = Path(path)
@@ -214,15 +251,14 @@ def collect_varied(path, episodes=1200, seed=191, *, workers=DEFAULT_WORKERS):
     kinds = np.arange(episodes) % len(FAMILIES)
     specs = [None] * episodes
     rejected = {"initialization": 0, "joint_limits": 0, "motion": 0, "contact": 0}
-    tasks = ((seed, episode) for episode in range(episodes))
-    for completed, result in enumerate(collect_tasks(_collect_varied_episode, tasks, workers), 1):
+    tasks = ((seed, episode) if command_rate is None else (seed, episode, command_rate) for episode in range(episodes))
+    for result in tqdm(collect_tasks(_collect_varied_episode, tasks, workers), total=episodes, desc="Broad collection", leave=False,
+                       disable=not sys.stderr.isatty() or os.environ.get("TERM") == "dumb", unit="episode"):
         episode, state, action, contact, start, spec, rejection = result
         states[episode], actions[episode], contacts[episode], starting[episode] = state, action, contact, start
         specs[episode] = spec
         for key in rejected:
             rejected[key] += rejection[key]
-        if completed % 20 == 0:
-            print(f"Varied collection {completed}/{episodes}; rejections={rejected}", flush=True)
     collection_seconds = time.perf_counter() - collection_started
     split = np.empty(episodes, dtype=int)
     per_family = episodes // 4
@@ -243,6 +279,16 @@ def collect_varied(path, episodes=1200, seed=191, *, workers=DEFAULT_WORKERS):
                 "initial_planar_cube_speed_m_s": [0, 0.15], "initial_cube_yaw_rate_rad_s": [-1, 1],
                 "selection": "both joints >=15deg; targeted contact >=22.5% windows and displacement >2cm; no hard-stop excursions"}
     dataset = dict(states=states, actions=actions, contacts=contacts, starting_contact=starting, split=split, kinds=kinds, metadata=metadata)
+    if command_rate is not None:
+        metadata.update(collector="varied_rate_limited_v1", command_rate_limit_rad_s=command_rate,
+                        ramp_rate_rad_s=[.85 * command_rate, command_rate], stationary_arm_starts=True)
+        command_array = actions[:, ::5]
+        peak = float(np.abs(np.diff(np.concatenate([states[:, :1, :2], command_array], axis=1), axis=1)).max() / .1)
+        if peak > command_rate + 1e-9:
+            raise RuntimeError(f"Command rate violation: {peak}")
+        metadata["measured_peak_command_rate_rad_s"] = peak
+        metadata["measured_peak_actual_joint_speed_rad_s"] = float(np.abs(states[..., 2:4]).max())
+        metadata["actual_speed_measurement"] = "all saved 20ms states; not a physical velocity constraint"
     summary = summarize(dataset)
     check_coverage(summary)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -251,7 +297,7 @@ def collect_varied(path, episodes=1200, seed=191, *, workers=DEFAULT_WORKERS):
                    execution={"workers_requested": workers, "workers_used": effective_workers(workers, episodes),
                               "collection_seconds": collection_seconds})
     path.with_suffix(".json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
-    print(json.dumps({k: v for k, v in summary.items() if k not in ("sampling", "metadata")}, indent=2), flush=True)
+    print(f"Broad collection complete: {path}; {episodes} episodes in {collection_seconds:.1f}s", flush=True)
     return dataset
 
 

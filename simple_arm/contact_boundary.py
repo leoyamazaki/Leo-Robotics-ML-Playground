@@ -3,16 +3,19 @@
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
+import sys
 import time
 
 import mujoco
 import numpy as np
 import torch
+from tqdm import tqdm
 
 from .contact_learning import evaluate, load_dataset, load_predictor, physical_errors, rollout, train, train_multistep
 from .contact_simulation import ContactSimulation, link_lengths, model_hash
-from .contact_varied import command_sequence, tip_position
+from .contact_varied import command_sequence, limited_commands, tip_position
 from .collection_workers import DEFAULT_WORKERS, RNG_SCHEME, collect_tasks, effective_workers, get_simulation, unit_generator
 
 
@@ -137,7 +140,8 @@ def group_split(groups, generator):
 
 
 def _collect_group(task):
-    seed, group = task
+    seed, group, *options = task
+    rate = options[0] if options else None
     generator = unit_generator(seed, group, 10)
     simulation = get_simulation()
     lengths, limits = link_lengths(), simulation.action_limits
@@ -149,6 +153,9 @@ def _collect_group(task):
         arm = generator.uniform(limits[:, 0] + 0.2, limits[:, 1] - 0.2)
         velocity = generator.uniform(-0.3, 0.3, 2) if generator.random() < 0.5 else np.zeros(2)
         commands = command_sequence(generator, arm, limits, group % 4)
+        if rate is not None:
+            velocity = np.zeros(2)
+            commands = limited_commands(generator, arm, limits, group % 4, rate)
         # One varied approach followed by a hold exposes release/settling and
         # avoids repeatedly crossing the same candidate contact boundary.
         stop = int(generator.integers(10, 21))
@@ -206,7 +213,7 @@ def _collect_group(task):
     return group, {key: value[:4] for key, value in accepted.items()}, np.repeat(commands, 5, axis=0), rejection
 
 
-def collect(path, groups=320, seed=291, *, workers=DEFAULT_WORKERS):
+def collect(path, groups=320, seed=291, *, workers=DEFAULT_WORKERS, command_rate=None):
     path = Path(path)
     if path.exists() or path.with_suffix(".json").exists():
         raise FileExistsError(path)
@@ -220,8 +227,9 @@ def collect(path, groups=320, seed=291, *, workers=DEFAULT_WORKERS):
     all_starting = np.empty((groups * 4, 200), dtype=bool)
     all_diagnostics = np.empty((groups * 4, 6))
     rejection = {"group_attempts": 0, "candidate_initialization": 0, "category_mismatch": 0}
-    tasks = ((seed, group) for group in range(groups))
-    for completed, (group, accepted, commands, rejected) in enumerate(collect_tasks(_collect_group, tasks, workers), 1):
+    tasks = ((seed, group) if command_rate is None else (seed, group, command_rate) for group in range(groups))
+    for group, accepted, commands, rejected in tqdm(collect_tasks(_collect_group, tasks, workers), total=groups,
+            desc="Boundary collection", leave=False, disable=not sys.stderr.isatty() or os.environ.get("TERM") == "dumb", unit="group"):
         for key in rejection:
             rejection[key] += rejected[key]
         for category in range(4):
@@ -230,8 +238,6 @@ def collect(path, groups=320, seed=291, *, workers=DEFAULT_WORKERS):
             all_states[index], all_actions[index] = states, commands
             all_contacts[index], all_starting[index] = contacts, starting
             all_diagnostics[index] = diagnostic
-        if completed % 4 == 0:
-            print(f"Boundary groups {completed}/{groups}; {rejection}", flush=True)
     collection_seconds = time.perf_counter() - collection_started
     dataset = dict(states=np.asarray(all_states), actions=np.asarray(all_actions), contacts=np.asarray(all_contacts),
                    starting_contact=np.asarray(all_starting), split=split, kinds=np.tile(np.arange(4), groups),
@@ -243,6 +249,15 @@ def collect(path, groups=320, seed=291, *, workers=DEFAULT_WORKERS):
                            "paired_groups": True, "mass_kg": 0.1, "friction": 0.7,
                            "state": "arm q2, arm v2, cube XYZ3, sin_yaw, cos_yaw, cube world v3, yaw_rate",
                            "action": "absolute shoulder/elbow position targets in radians; held 100 ms"}
+    if command_rate is not None:
+        command_array = all_actions[:, ::5]
+        peak = float(np.abs(np.diff(np.concatenate([all_states[:, :1, :2], command_array], axis=1), axis=1)).max() / .1)
+        if peak > command_rate + 1e-9:
+            raise RuntimeError(f"Command rate violation: {peak}")
+        dataset["metadata"].update(collector="contact_boundary_rate_limited_v1", command_rate_limit_rad_s=command_rate,
+                                  stationary_arm_starts=True, measured_peak_command_rate_rad_s=peak,
+                                  measured_peak_actual_joint_speed_rad_s=float(np.abs(all_states[..., 2:4]).max()),
+                                  actual_speed_measurement="all saved 20ms states; not a physical velocity constraint")
     summary = {"groups": groups, "episodes": groups * 4, "splits": np.bincount(split).tolist(),
                "category_counts": {name: groups for name in CATEGORIES}, "rejections": rejection,
                "diagnostic_ranges": {name: {"min": dataset["diagnostics"][i::4].min(axis=0).tolist(),
@@ -250,7 +265,7 @@ def collect(path, groups=320, seed=291, *, workers=DEFAULT_WORKERS):
     summary["execution"] = {"workers_requested": workers, "workers_used": effective_workers(workers, groups),
                             "collection_seconds": collection_seconds}
     save_dataset(path, dataset, summary)
-    print(json.dumps(summary, indent=2), flush=True)
+    print(f"Boundary collection complete: {path}; {groups} groups in {collection_seconds:.1f}s", flush=True)
     return dataset
 
 
@@ -266,6 +281,12 @@ def merge(focused_path, broad_path, output):
     dataset["family"] = np.r_[broad["kinds"], focused["family"]]
     dataset["metadata"] = dict(focused["metadata"], collector="contact_boundary_mixed_v1", episodes=len(dataset["states"]),
                                parents=[broad["metadata"], focused["metadata"]])
+    rates = [part["metadata"].get("command_rate_limit_rad_s") for part in (broad, focused)]
+    if any(rate is not None for rate in rates):
+        if rates[0] != rates[1]:
+            raise ValueError("Cannot merge datasets with different command-rate protocols")
+        dataset["metadata"]["measured_peak_actual_joint_speed_rad_s"] = float(np.abs(dataset["states"][..., 2:4]).max())
+        dataset["metadata"]["measured_peak_command_rate_rad_s"] = max(part["metadata"]["measured_peak_command_rate_rad_s"] for part in (broad, focused))
     save_dataset(output, dataset, {"episodes": len(dataset["states"]), "splits": np.bincount(dataset["split"]).tolist(),
                                  "original_splits_preserved": True, "parents": [str(broad_path), str(focused_path)]})
     return dataset

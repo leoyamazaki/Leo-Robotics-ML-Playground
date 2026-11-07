@@ -1,0 +1,5 @@
+# Hardware-neutral training dependencies; install torch separately for each machine.
+-r requirements.txt
+pytest==9.2.0
+matplotlib==3.11.2
+tqdm==4.67.1

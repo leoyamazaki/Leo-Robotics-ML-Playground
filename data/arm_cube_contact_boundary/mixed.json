@@ -1,0 +1,13 @@
+{
+  "episodes": 2480,
+  "splits": [
+    1736,
+    372,
+    372
+  ],
+  "original_splits_preserved": true,
+  "parents": [
+    "data\\arm_cube_contact_boundary\\broad.npz",
+    "data\\arm_cube_contact_boundary\\focused.npz"
+  ]
+}

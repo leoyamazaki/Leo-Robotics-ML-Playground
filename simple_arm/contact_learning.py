@@ -10,10 +10,11 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
 import numpy as np
 import torch
-from torch import nn
 
 from .arm_learning import normalization, load_predictor as load_arm_predictor
 from .contact_simulation import ContactSimulation, link_lengths, model_hash
+from .contact_models import (checkpoint_features, model_from_checkpoint, plain_model,
+                             state_features, INPUT_FLOOR, TARGET_FLOOR)
 
 
 KINDS = ["free", "approach", "push_release", "sweep", "reversal", "near_contact"]
@@ -22,12 +23,7 @@ BASE_DT = 0.02
 
 
 def features(states, actions, lengths):
-    result = states.copy()
-    angle = states[..., 0]
-    total = angle + states[..., 1]
-    result[..., 4] -= lengths[0] * np.cos(angle) + lengths[1] * np.cos(total)
-    result[..., 5] -= lengths[0] * np.sin(angle) + lengths[1] * np.sin(total)
-    return np.concatenate([result, actions], axis=-1)
+    return state_features(states, actions, lengths)
 
 
 def delta_target(current, following):
@@ -150,16 +146,14 @@ def labels(dataset, stride):
 
 
 def make_model(hidden_width=128):
-    if not isinstance(hidden_width, int) or isinstance(hidden_width, bool) or hidden_width < 1:
-        raise ValueError("hidden_width must be a positive integer")
-    return nn.Sequential(nn.Linear(15, hidden_width), nn.SiLU(), nn.Linear(hidden_width, hidden_width), nn.SiLU(), nn.Linear(hidden_width, hidden_width), nn.SiLU(), nn.Linear(hidden_width, 12)).cpu()
+    return plain_model(hidden_width)
 
 
-def training_arrays(dataset, stride, split):
+def training_arrays(dataset, stride, split, input_coordinate_frame="tip_relative"):
     selected = dataset["split"] == split
     states = dataset["states"][selected, ::stride]
     actions = dataset["actions"][selected, ::stride]
-    inputs = features(states[:, :-1], actions, dataset["metadata"]["lengths"]).reshape(-1, 15)
+    inputs = state_features(states[:, :-1], actions, dataset["metadata"]["lengths"], input_coordinate_frame).reshape(-1, 15)
     targets = delta_target(states[:, :-1], states[:, 1:]).reshape(-1, 12)
     contact = dataset["contacts"].reshape(len(dataset["states"]), -1, stride * 10)[selected].any(axis=-1).reshape(-1)
     weights = np.where(contact, 5.0, 1.0)
@@ -172,8 +166,8 @@ def train(dataset, output, stride, epochs=100):
     validation_inputs, validation_targets, _ = training_arrays(dataset, stride, 1)
     input_mean, input_scale = normalization(inputs)
     target_mean, target_scale = normalization(targets)
-    input_scale = torch.maximum(input_scale, torch.tensor([0.1, 0.1, 0.5, 0.5, 0.03, 0.03, 0.01, 0.2, 0.2, 0.05, 0.05, 0.05, 0.2, 0.1, 0.1]))
-    target_scale = torch.maximum(target_scale, torch.tensor([0.01, 0.01, 0.1, 0.1, 0.001, 0.001, 0.001, 0.01, 0.01, 0.01, 0.01, 0.05]))
+    input_scale = torch.maximum(input_scale, torch.tensor(INPUT_FLOOR))
+    target_scale = torch.maximum(target_scale, torch.tensor(TARGET_FLOOR))
     inputs, targets = (inputs - input_mean) / input_scale, (targets - target_mean) / target_scale
     validation_inputs = (validation_inputs - input_mean) / input_scale
     validation_targets = (validation_targets - target_mean) / target_scale
@@ -221,11 +215,11 @@ def load_predictor(path, expected_stride=None):
         raise ValueError("Contact checkpoint/model mismatch")
     if expected_stride is not None and checkpoint["stride"] != expected_stride:
         raise ValueError("Checkpoint prediction interval mismatch")
-    model = make_model(checkpoint.get("hidden_width", 128)).eval()
+    model = model_from_checkpoint(checkpoint).eval()
     model.load_state_dict(checkpoint["weights"])
 
     def predict(current, action):
-        inputs = torch.tensor(features(current, action, checkpoint["metadata"]["lengths"]), dtype=torch.float32)
+        inputs = torch.tensor(checkpoint_features(current, action, checkpoint), dtype=torch.float32)
         with torch.no_grad():
             delta = model((inputs - checkpoint["input_mean"]) / checkpoint["input_scale"]) * checkpoint["target_scale"] + checkpoint["target_mean"]
         result = apply_delta(current, delta.numpy())
@@ -237,9 +231,7 @@ def load_predictor(path, expected_stride=None):
 
 
 def differentiable_next(model, current, action, checkpoint):
-    first, second = checkpoint["metadata"]["lengths"]
-    tip = torch.stack([first * torch.cos(current[..., 0]) + second * torch.cos(current[..., 0] + current[..., 1]), first * torch.sin(current[..., 0]) + second * torch.sin(current[..., 0] + current[..., 1])], dim=-1)
-    inputs = torch.cat([current[..., :4], current[..., 4:6] - tip, current[..., 6:], action], dim=-1)
+    inputs = checkpoint_features(current, action, checkpoint)
     delta = model((inputs - checkpoint["input_mean"]) / checkpoint["input_scale"]) * checkpoint["target_scale"] + checkpoint["target_mean"]
     sine, cosine = torch.sin(delta[..., 7]), torch.cos(delta[..., 7])
     orientation = torch.stack([current[..., 7] * cosine + current[..., 8] * sine, current[..., 8] * cosine - current[..., 7] * sine], dim=-1)
@@ -254,7 +246,7 @@ def train_multistep(dataset, source, output, epochs=80, *, shuffle_seed=None, va
     checkpoint = torch.load(source, map_location="cpu", weights_only=True)
     if checkpoint["stride"] != 5 or checkpoint["metadata"] != dataset["metadata"]:
         raise ValueError("Refinement requires matching 100 ms dataset/checkpoint")
-    model = make_model(checkpoint.get("hidden_width", 128))
+    model = model_from_checkpoint(checkpoint)
     model.load_state_dict(checkpoint["weights"])
     optimizer = torch.optim.Adam(model.parameters(), lr=0.0002)
     states = torch.tensor(dataset["states"][dataset["split"] == 0, ::5], dtype=torch.float32)

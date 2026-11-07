@@ -3,3 +3,4 @@
 torch==2.15.0+cpu
 pytest==9.2.0
 matplotlib==3.11.2
+tqdm==4.67.1

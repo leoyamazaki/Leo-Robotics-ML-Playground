@@ -100,7 +100,8 @@ def train(dataset, source, output, multiplier, config=Config()):
     training, validation = prepare(dataset, reference)
     masks = stationary_intervals(dataset["states"], config.speed_tolerance, config.excursion_tolerance)
     still_train, still_val = [torch.tensor(masks[dataset["split"] == split].reshape(-1)) for split in (0, 1)]
-    model = make_model(reference.get("hidden_width", 128))
+    from .contact_models import model_from_checkpoint
+    model = model_from_checkpoint(reference)
     model.load_state_dict(reference["weights"])
     optimizer = torch.optim.Adam(model.parameters(), lr=config.learning_rate)
     generator = torch.Generator().manual_seed(config.seed)

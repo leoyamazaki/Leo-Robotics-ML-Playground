@@ -1,0 +1,114 @@
+{
+  "all_archive_hashes_verified": true,
+  "all_commands_include_initial_target_and_respect_02": true,
+  "all_boundary_categories_verified": true,
+  "paired_commands_identical": true,
+  "mixed_source_arrays_and_splits_unchanged": true,
+  "distinct_collection_seeds": true,
+  "datasets": {
+    "broad.npz": {
+      "seed": 491,
+      "episodes": 1200,
+      "sha256": "b1b2c0c08fe5959d72a91aaa00f0e6bd1d0533386b73fdd4f168694c72078466",
+      "peak_command_rate_rad_s": 0.20000000000000018,
+      "maximum_saved_joint_speed_rad_s": [
+        0.261796336603519,
+        0.2854528177386032
+      ],
+      "p95_saved_joint_speed_rad_s": [
+        0.22191766007416103,
+        0.23788016585187116
+      ],
+      "contact_interval_fraction": 0.3549375,
+      "cube_endpoint_over_2cm_fraction": 0.7233333333333334,
+      "split_episodes": [
+        840,
+        180,
+        180
+      ]
+    },
+    "focused.npz": {
+      "seed": 591,
+      "episodes": 1280,
+      "sha256": "1722b59547bb1a555f1b0fa9bf029a57b35c2b49cfe53e25524bd90ebc1ae48d",
+      "peak_command_rate_rad_s": 0.20000000000000018,
+      "maximum_saved_joint_speed_rad_s": [
+        0.26858207816317037,
+        0.2712540538631044
+      ],
+      "p95_saved_joint_speed_rad_s": [
+        0.21092899609494767,
+        0.2169116192081339
+      ],
+      "contact_interval_fraction": 0.17619140625,
+      "cube_endpoint_over_2cm_fraction": 0.25,
+      "split_episodes": [
+        896,
+        192,
+        192
+      ]
+    },
+    "independent.npz": {
+      "seed": 592,
+      "episodes": 160,
+      "sha256": "d58dfd34cc0d82e6e911e79335dc507b83b7c93a30aa90803514d9c63a173437",
+      "peak_command_rate_rad_s": 0.20000000000000018,
+      "maximum_saved_joint_speed_rad_s": [
+        0.24952528106020957,
+        0.26524141740126594
+      ],
+      "p95_saved_joint_speed_rad_s": [
+        0.2123726072509874,
+        0.21677098084031016
+      ],
+      "contact_interval_fraction": 0.18453125,
+      "cube_endpoint_over_2cm_fraction": 0.25,
+      "split_episodes": [
+        112,
+        24,
+        24
+      ]
+    },
+    "broad_independent.npz": {
+      "seed": 493,
+      "episodes": 120,
+      "sha256": "ec264298b2f7f36af1b07c817707599a54d3132b4f8783a803cf573c9641324c",
+      "peak_command_rate_rad_s": 0.20000000000000018,
+      "maximum_saved_joint_speed_rad_s": [
+        0.2548546450638576,
+        0.2723752114577935
+      ],
+      "p95_saved_joint_speed_rad_s": [
+        0.22187700938481944,
+        0.23711718509131646
+      ],
+      "contact_interval_fraction": 0.35104166666666664,
+      "cube_endpoint_over_2cm_fraction": 0.7166666666666667,
+      "split_episodes": [
+        84,
+        18,
+        18
+      ]
+    },
+    "mixed.npz": {
+      "episodes": 2480,
+      "sha256": "7af25eef51b61a769a662e2c79c7e57ed72649ca5912204becd8343f9773d520",
+      "peak_command_rate_rad_s": 0.20000000000000018,
+      "maximum_saved_joint_speed_rad_s": [
+        0.26858207816317037,
+        0.2854528177386032
+      ],
+      "p95_saved_joint_speed_rad_s": [
+        0.21896189476069644,
+        0.23192932549092
+      ],
+      "contact_interval_fraction": 0.26268145161290324,
+      "cube_endpoint_over_2cm_fraction": 0.4790322580645161,
+      "split_episodes": [
+        1736,
+        372,
+        372
+      ]
+    }
+  }
+}

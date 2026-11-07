@@ -11,6 +11,7 @@ import torch
 
 from .contact_boundary import evaluate_boundary, load_boundary
 from .contact_learning import load_predictor, make_model, new_plot, physical_errors, training_arrays
+from .contact_models import coordinate_frame, model_from_checkpoint
 
 
 DATASET = Path("data/arm_cube_contact_boundary/mixed.npz")
@@ -26,8 +27,8 @@ def file_hash(path):
 def prepare(dataset, reference):
     if dataset["metadata"] != reference["metadata"] or reference["stride"] != 5:
         raise ValueError("Capacity screening requires the baseline's exact 100 ms dataset")
-    train_x, train_y, train_weights = training_arrays(dataset, 5, 0)
-    val_x, val_y, val_weights = training_arrays(dataset, 5, 1)
+    train_x, train_y, train_weights = training_arrays(dataset, 5, 0, coordinate_frame(reference))
+    val_x, val_y, val_weights = training_arrays(dataset, 5, 1, coordinate_frame(reference))
     torch.testing.assert_close(reference["input_mean"], train_x.mean(0))
     torch.testing.assert_close(reference["target_mean"], train_y.mean(0))
 
@@ -169,7 +170,7 @@ def run(dataset_path=DATASET, output=OUTPUT, epochs=12):
     summary = {"config": config, "models": runs}
     for name, info in runs.items():
         checkpoint = torch.load(info["checkpoint"], map_location="cpu", weights_only=True)
-        model = make_model(checkpoint.get("hidden_width", 128)).eval()
+        model = model_from_checkpoint(checkpoint).eval()
         model.load_state_dict(checkpoint["weights"])
         info["selected_checkpoint_losses"] = {"train": normalized_losses(model, train_arrays), "validation": normalized_losses(model, val_arrays)}
         directory = output / "evaluations" / name

@@ -1,0 +1,187 @@
+{
+  "command_rate_limit_rad_s": 0.2,
+  "actual_joint_speeds": "measured, not constrained",
+  "pilot": false,
+  "workers": 8,
+  "source_code_hashes": {
+    "__init__.py": "96e21e7beef815ea6ce81995d88899911c7a6e397f7942485f7830f82f8f0e87",
+    "__main__.py": "3318ebfe2aeb7e2b86d0119fbad1a735f525866a3fc1fac233b116d108f97b99",
+    "arm_learning.py": "7f1f66c4b1fa1ab41019e37c8a20d8d463615d684be9d603ce40135be6d46adb",
+    "benchmark_collection.py": "8b80f3b94dd4238fd8e97be420ce5e0263c9ca246d982adad859bcdcec00c0a0",
+    "capacity_refinement.py": "e40e2f76dc1e8664aebf3815e3b0df0621a984438203059bd156d10e9ea8703d",
+    "capacity_screen.py": "4725cd4c7ae0fe109774f4bef4ebc19a78dc8185c081c4c47c6c066b0cbe1119",
+    "collection_workers.py": "cff1d1026ac0f3a219b4e2eb0cc61c34c4ae519b4612696fa2f850e27f4626a9",
+    "contact_boundary.py": "2b225d3b9e2d2d4a07cd7bb7ce0a8e5b755266433538675f1c2d0936686f90bc",
+    "contact_learning.py": "1cc8b9180a03530f65cfafc78d878176a8ab07798ab89223ba1b2f82fc519e53",
+    "contact_models.py": "d68cb4622e92c28dd8340617a776dd4544c5ecf633710f8b3d9c65a7784c064c",
+    "contact_simulation.py": "b1255b1f575645f33d763f9480cfb220f0f98499474a94fe622cf5f3e555be7c",
+    "contact_varied.py": "2b78df3d0bc28a0bec9e9963fd05eb3473afed6e56661a0c54cadcc7cc716faf",
+    "contact_viewer.py": "3d9f261f65a22c85ac04c3d9bcb1242aeaa9b64fe86dff6e4d967552a0b00a5e",
+    "cube_mpc.py": "d14e0c1bc697449c4d10c5263fbaa722b8f69aa1c8446dd81eefd35746250f36",
+    "cube_mpc_comparison.py": "6674fb9b0ac643679f97897d60e70695c6165567bf6fa5a7cee0184a6d7147eb",
+    "cube_mpc_experiment.py": "ede485ff471d4933b1d58070e5b2e9d40457cce7ebee8745ff7d6585a618044c",
+    "cube_mpc_viewer.py": "ec14f1d0d930744bc0389c83a90c9322c6833104bc1aba96039e1237d70b29ec",
+    "cube_rate_experiment.py": "f8191790ca0a5bedf27d8ee6b126ad81c9a9f00518bd15fea7f0a927051a8cd3",
+    "cube_workspace.py": "5f1abaa61bb95113e5706269feccca67d010b2ef13ed72c415eb05c5cf21d3ab",
+    "mpc.py": "9fe941fce77b40954c2d304b41578befaa625fc1dd100faeb1313fe6e314adec",
+    "one_step_stationary.py": "05be85036b027921fdd373781edff4658b2ddce0ee2d9044422fa9dd8e553c72",
+    "portable_training.py": "aab9a8ce1e5fc3a91ee1e5a68243861f941ea1f1b4365827d26cfdfee85f90e4",
+    "rate_collection.py": "b5f6a0476be7ca207bcb0972a9cc26845b86794ed0ed11a44f427271a92d80f2",
+    "residual_evaluation.py": "7d253c0806471c757af32ecf3279762de0b5608d601f6acc482cd5ecba914b86",
+    "residual_training.py": "6e6634b38c0d5d265225dec30451c521d7bd3ec774d3ad2e6c5735bf9f2f9232",
+    "rollout_stress.py": "fe7fe820e575c869795be3c8a519bb224b20fafd55bf37d8b6be9864f89f9a8c",
+    "simulation.py": "d60cf514228b07eb535035de20062b28d9b079509c24deb0fb0e4ff7d8b0a4f5",
+    "slow_collection.py": "12cab933e1a80bb5a3390ef288609d7bdf82a201ef06b4d65465233a17a78223",
+    "slow_control_evaluation.py": "7d0df9c338304a36666bc99a41c9e3425cc241f96eb4f8500acd09244320d0d7",
+    "slow_training.py": "c64bd56c62a5e3e4e6d946773bd361b01bd5ca659fa3bdb115a195a510bc39fe",
+    "stationary_experiment.py": "fda0ea2f583fcd1d2e13f28466c5ab029500d8806b98e848268163476e160be0",
+    "stationary_training.py": "c52450292b1657854f62ff813009c4fe484fc6d3953b7f18203fba3d9bdbfe4d",
+    "training_smoke.py": "0042bbe9e12b754edd5993ed4b7dc366ade416e862a70e66ee80c11da5fc6f11"
+  },
+  "datasets": {
+    "broad.npz": {
+      "seed": 491,
+      "episodes": 1200,
+      "sha256": "b1b2c0c08fe5959d72a91aaa00f0e6bd1d0533386b73fdd4f168694c72078466",
+      "peak_command_rate_rad_s": 0.20000000000000018,
+      "maximum_saved_joint_speed_rad_s": [
+        0.261796336603519,
+        0.2854528177386032
+      ],
+      "p95_saved_joint_speed_rad_s": [
+        0.22191766007416103,
+        0.23788016585187116
+      ],
+      "contact_interval_fraction": 0.3549375,
+      "cube_endpoint_over_2cm_fraction": 0.7233333333333334,
+      "split_episodes": [
+        840,
+        180,
+        180
+      ]
+    },
+    "focused.npz": {
+      "seed": 591,
+      "episodes": 1280,
+      "sha256": "1722b59547bb1a555f1b0fa9bf029a57b35c2b49cfe53e25524bd90ebc1ae48d",
+      "peak_command_rate_rad_s": 0.20000000000000018,
+      "maximum_saved_joint_speed_rad_s": [
+        0.26858207816317037,
+        0.2712540538631044
+      ],
+      "p95_saved_joint_speed_rad_s": [
+        0.21092899609494767,
+        0.2169116192081339
+      ],
+      "contact_interval_fraction": 0.17619140625,
+      "cube_endpoint_over_2cm_fraction": 0.25,
+      "split_episodes": [
+        896,
+        192,
+        192
+      ]
+    },
+    "independent.npz": {
+      "seed": 592,
+      "episodes": 160,
+      "sha256": "d58dfd34cc0d82e6e911e79335dc507b83b7c93a30aa90803514d9c63a173437",
+      "peak_command_rate_rad_s": 0.20000000000000018,
+      "maximum_saved_joint_speed_rad_s": [
+        0.24952528106020957,
+        0.26524141740126594
+      ],
+      "p95_saved_joint_speed_rad_s": [
+        0.2123726072509874,
+        0.21677098084031016
+      ],
+      "contact_interval_fraction": 0.18453125,
+      "cube_endpoint_over_2cm_fraction": 0.25,
+      "split_episodes": [
+        112,
+        24,
+        24
+      ]
+    },
+    "broad_independent.npz": {
+      "seed": 493,
+      "episodes": 120,
+      "sha256": "ec264298b2f7f36af1b07c817707599a54d3132b4f8783a803cf573c9641324c",
+      "peak_command_rate_rad_s": 0.20000000000000018,
+      "maximum_saved_joint_speed_rad_s": [
+        0.2548546450638576,
+        0.2723752114577935
+      ],
+      "p95_saved_joint_speed_rad_s": [
+        0.22187700938481944,
+        0.23711718509131646
+      ],
+      "contact_interval_fraction": 0.35104166666666664,
+      "cube_endpoint_over_2cm_fraction": 0.7166666666666667,
+      "split_episodes": [
+        84,
+        18,
+        18
+      ]
+    },
+    "mixed.npz": {
+      "episodes": 2480,
+      "sha256": "7af25eef51b61a769a662e2c79c7e57ed72649ca5912204becd8343f9773d520",
+      "peak_command_rate_rad_s": 0.20000000000000018,
+      "maximum_saved_joint_speed_rad_s": [
+        0.26858207816317037,
+        0.2854528177386032
+      ],
+      "p95_saved_joint_speed_rad_s": [
+        0.21896189476069644,
+        0.23192932549092
+      ],
+      "contact_interval_fraction": 0.26268145161290324,
+      "cube_endpoint_over_2cm_fraction": 0.4790322580645161,
+      "split_episodes": [
+        1736,
+        372,
+        372
+      ]
+    }
+  },
+  "wall_seconds_this_invocation": 103.23440400000072,
+  "mixed_metadata_correction": {
+    "reason": "Compute actual-speed summary over both source datasets instead of inheriting the focused-only peak",
+    "states_actions_split_fingerprint_unchanged": "246a87d1bd7f9049f77edb70ed4ecc5336af4c77ad4ce892245b0a6f0b3986aa",
+    "source_code_hashes": {
+      "__init__.py": "96e21e7beef815ea6ce81995d88899911c7a6e397f7942485f7830f82f8f0e87",
+      "__main__.py": "3318ebfe2aeb7e2b86d0119fbad1a735f525866a3fc1fac233b116d108f97b99",
+      "arm_learning.py": "7f1f66c4b1fa1ab41019e37c8a20d8d463615d684be9d603ce40135be6d46adb",
+      "benchmark_collection.py": "8b80f3b94dd4238fd8e97be420ce5e0263c9ca246d982adad859bcdcec00c0a0",
+      "capacity_refinement.py": "e40e2f76dc1e8664aebf3815e3b0df0621a984438203059bd156d10e9ea8703d",
+      "capacity_screen.py": "4725cd4c7ae0fe109774f4bef4ebc19a78dc8185c081c4c47c6c066b0cbe1119",
+      "collection_workers.py": "cff1d1026ac0f3a219b4e2eb0cc61c34c4ae519b4612696fa2f850e27f4626a9",
+      "contact_boundary.py": "b270d8213e7504215935421d6c286784e20520060ed75d5c5ac82de8b7eab265",
+      "contact_learning.py": "1cc8b9180a03530f65cfafc78d878176a8ab07798ab89223ba1b2f82fc519e53",
+      "contact_models.py": "d68cb4622e92c28dd8340617a776dd4544c5ecf633710f8b3d9c65a7784c064c",
+      "contact_simulation.py": "b1255b1f575645f33d763f9480cfb220f0f98499474a94fe622cf5f3e555be7c",
+      "contact_varied.py": "2b78df3d0bc28a0bec9e9963fd05eb3473afed6e56661a0c54cadcc7cc716faf",
+      "contact_viewer.py": "3d9f261f65a22c85ac04c3d9bcb1242aeaa9b64fe86dff6e4d967552a0b00a5e",
+      "cube_mpc.py": "d14e0c1bc697449c4d10c5263fbaa722b8f69aa1c8446dd81eefd35746250f36",
+      "cube_mpc_comparison.py": "6674fb9b0ac643679f97897d60e70695c6165567bf6fa5a7cee0184a6d7147eb",
+      "cube_mpc_experiment.py": "ede485ff471d4933b1d58070e5b2e9d40457cce7ebee8745ff7d6585a618044c",
+      "cube_mpc_viewer.py": "ec14f1d0d930744bc0389c83a90c9322c6833104bc1aba96039e1237d70b29ec",
+      "cube_rate_experiment.py": "f8191790ca0a5bedf27d8ee6b126ad81c9a9f00518bd15fea7f0a927051a8cd3",
+      "cube_workspace.py": "5f1abaa61bb95113e5706269feccca67d010b2ef13ed72c415eb05c5cf21d3ab",
+      "mpc.py": "9fe941fce77b40954c2d304b41578befaa625fc1dd100faeb1313fe6e314adec",
+      "one_step_stationary.py": "05be85036b027921fdd373781edff4658b2ddce0ee2d9044422fa9dd8e553c72",
+      "portable_training.py": "aab9a8ce1e5fc3a91ee1e5a68243861f941ea1f1b4365827d26cfdfee85f90e4",
+      "rate_collection.py": "502009d0a9c8a4c42842e686742d9f135b533577fcae6e94fd007af8cdddf038",
+      "residual_evaluation.py": "7d253c0806471c757af32ecf3279762de0b5608d601f6acc482cd5ecba914b86",
+      "residual_training.py": "6e6634b38c0d5d265225dec30451c521d7bd3ec774d3ad2e6c5735bf9f2f9232",
+      "rollout_stress.py": "fe7fe820e575c869795be3c8a519bb224b20fafd55bf37d8b6be9864f89f9a8c",
+      "simulation.py": "d60cf514228b07eb535035de20062b28d9b079509c24deb0fb0e4ff7d8b0a4f5",
+      "slow_collection.py": "12cab933e1a80bb5a3390ef288609d7bdf82a201ef06b4d65465233a17a78223",
+      "slow_control_evaluation.py": "7d0df9c338304a36666bc99a41c9e3425cc241f96eb4f8500acd09244320d0d7",
+      "slow_training.py": "c64bd56c62a5e3e4e6d946773bd361b01bd5ca659fa3bdb115a195a510bc39fe",
+      "stationary_experiment.py": "fda0ea2f583fcd1d2e13f28466c5ab029500d8806b98e848268163476e160be0",
+      "stationary_training.py": "c52450292b1657854f62ff813009c4fe484fc6d3953b7f18203fba3d9bdbfe4d",
+      "training_smoke.py": "0042bbe9e12b754edd5993ed4b7dc366ade416e862a70e66ee80c11da5fc6f11"
+    }
+  }
+}

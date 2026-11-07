@@ -1,0 +1,3067 @@
+{
+  "episodes": 120,
+  "transitions_100ms": 4800,
+  "split_episodes": [
+    84,
+    18,
+    18
+  ],
+  "both_joints_over_15deg_fraction": 1.0,
+  "contact_window_fraction": 0.35104166666666664,
+  "moving_over_2cm_fraction": 0.7166666666666667,
+  "joint_excursion_deg": {
+    "min": [
+      19.13776963394915,
+      18.961877984190366
+    ],
+    "median": [
+      30.676872546372092,
+      30.72447349764161
+    ],
+    "p95": [
+      43.42126068941451,
+      43.44961583175843
+    ],
+    "max": [
+      44.58671630175511,
+      44.72387303052827
+    ]
+  },
+  "joint_positions_rad": {
+    "min": [
+      -1.4007154682040488,
+      -1.9497106717663877
+    ],
+    "median": [
+      0.08563704493409871,
+      0.19483271208430597
+    ],
+    "p95": [
+      1.0686397449290612,
+      1.5476308456777033
+    ],
+    "max": [
+      1.4200239128580723,
+      1.856148728439993
+    ]
+  },
+  "initial_joint_positions_rad": {
+    "min": [
+      -1.4007154682040488,
+      -1.9304566447067537
+    ],
+    "median": [
+      -0.023171571397932356,
+      0.009314894774353433
+    ],
+    "p95": [
+      1.2529604060772985,
+      1.6917079883097657
+    ],
+    "max": [
+      1.3509237068748396,
+      1.8346423020648763
+    ]
+  },
+  "both_joints_moving_fraction_100ms": 0.9677083333333333,
+  "absolute_joint_velocity_rad_s": {
+    "min": [
+      0.0,
+      0.0
+    ],
+    "median": [
+      0.18161510950168627,
+      0.1704437449359003
+    ],
+    "p95": [
+      0.22187700938481944,
+      0.23711718509131646
+    ],
+    "max": [
+      0.2548546450638576,
+      0.2723752114577935
+    ]
+  },
+  "command_jump_rad": {
+    "min": [
+      0.0,
+      0.0
+    ],
+    "median": [
+      0.019271496366704888,
+      0.019229921556473795
+    ],
+    "p95": [
+      0.020000000000000018,
+      0.020000000000000018
+    ],
+    "max": [
+      0.020000000000000018,
+      0.020000000000000018
+    ]
+  },
+  "initial_cube_xy_m": {
+    "min": [
+      -0.06383728886058362,
+      -0.4918970921461923
+    ],
+    "median": [
+      0.36591528319586675,
+      -0.017947613429272813
+    ],
+    "p95": [
+      0.5114670605991292,
+      0.4724672151823284
+    ],
+    "max": [
+      0.5468711488399249,
+      0.5423856099968067
+    ]
+  },
+  "initial_cube_yaw_rad": {
+    "min": -3.113828614760321,
+    "median": 0.11857347137033147,
+    "p95": 2.9540679534379874,
+    "max": 3.1187255911580545
+  },
+  "initial_cube_velocity": {
+    "min": [
+      -0.13121990073009934,
+      -0.12234897740231887,
+      -0.9883446740785717
+    ],
+    "median": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "p95": [
+      0.08058825035627439,
+      0.08073131392713835,
+      0.8120499152248986
+    ],
+    "max": [
+      0.116987079428603,
+      0.12489474111240437,
+      0.9476104641559255
+    ]
+  },
+  "joint_limit_violation_samples": 0,
+  "contact_categories_100ms": {
+    "no_contact": 3052,
+    "onset": 1649,
+    "sustained": 1598,
+    "release": 1645,
+    "sliding": 63
+  },
+  "families": {
+    "smooth": {
+      "episodes": 30,
+      "joint_excursion_deg": {
+        "min": [
+          33.68855515909501,
+          33.79458554910603
+        ],
+        "median": [
+          37.033442102896544,
+          36.06148200546711
+        ],
+        "p95": [
+          38.934714958100386,
+          39.09852355748531
+        ],
+        "max": [
+          39.14790882204831,
+          39.12836099109943
+        ]
+      },
+      "contact_window_fraction": 0.4275,
+      "moving_over_2cm_fraction": 0.7333333333333333
+    },
+    "abrupt": {
+      "episodes": 30,
+      "joint_excursion_deg": {
+        "min": [
+          27.03529597162646,
+          27.294773360109055
+        ],
+        "median": [
+          27.31056765760874,
+          27.482285613951824
+        ],
+        "p95": [
+          27.65503982567338,
+          27.649326800652616
+        ],
+        "max": [
+          27.665189933649174,
+          27.654361446177187
+        ]
+      },
+      "contact_window_fraction": 0.29083333333333333,
+      "moving_over_2cm_fraction": 0.7
+    },
+    "coordinated": {
+      "episodes": 30,
+      "joint_excursion_deg": {
+        "min": [
+          37.20275595643785,
+          36.71211941592513
+        ],
+        "median": [
+          42.357446139401134,
+          42.755823927958346
+        ],
+        "p95": [
+          44.3142835851704,
+          44.558932598026644
+        ],
+        "max": [
+          44.58671630175511,
+          44.72387303052827
+        ]
+      },
+      "contact_window_fraction": 0.43,
+      "moving_over_2cm_fraction": 0.7333333333333333
+    },
+    "reversals": {
+      "episodes": 30,
+      "joint_excursion_deg": {
+        "min": [
+          19.13776963394915,
+          18.961877984190366
+        ],
+        "median": [
+          21.174131844006087,
+          21.968377938774324
+        ],
+        "p95": [
+          25.213967287420324,
+          24.712407314048217
+        ],
+        "max": [
+          25.8302832410161,
+          25.9415031953276
+        ]
+      },
+      "contact_window_fraction": 0.25583333333333336,
+      "moving_over_2cm_fraction": 0.7
+    }
+  },
+  "metadata": {
+    "base_dt": 0.02,
+    "seed": 493,
+    "episodes": 120,
+    "model_hash": "3d921aae058222c6951aa69c6a5749d1b81227664c23145fee6da4e16e22672e",
+    "lengths": [
+      0.3,
+      0.25
+    ],
+    "kinds": [
+      "smooth",
+      "abrupt",
+      "coordinated",
+      "reversals"
+    ],
+    "collector": "varied_rate_limited_v1",
+    "rng_scheme": "seed_sequence_per_unit_v1",
+    "data_sha256": "30075f7034dcd79b2466f16b8f3f4a4d098b3c94ba083a5e7e462af0f99bf401",
+    "state": "arm q2, arm v2, cube XYZ3, sin_yaw, cos_yaw, cube world v3, yaw_rate",
+    "action": "absolute shoulder/elbow position targets in radians; held 100 ms",
+    "physics_dt": 0.002,
+    "mass_kg": 0.1,
+    "friction": 0.7,
+    "joint_margin_rad": 0.15,
+    "ramp_rate_rad_s": [
+      0.17,
+      0.2
+    ],
+    "initial_planar_cube_speed_m_s": [
+      0,
+      0.15
+    ],
+    "initial_cube_yaw_rate_rad_s": [
+      -1,
+      1
+    ],
+    "selection": "both joints >=15deg; targeted contact >=22.5% windows and displacement >2cm; no hard-stop excursions",
+    "command_rate_limit_rad_s": 0.2,
+    "stationary_arm_starts": true,
+    "measured_peak_command_rate_rad_s": 0.20000000000000018,
+    "measured_peak_actual_joint_speed_rad_s": 0.2723752114577935,
+    "actual_speed_measurement": "all saved 20ms states; not a physical velocity constraint"
+  },
+  "rejection_counts": {
+    "initialization": 11,
+    "joint_limits": 0,
+    "motion": 0,
+    "contact": 5
+  },
+  "sampling": [
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 3,
+      "initial_arm": [
+        1.1573873903057248,
+        -0.05746231522868439
+      ],
+      "initial_cube_xy": [
+        0.32148874939776667,
+        0.4211534348583586
+      ],
+      "initial_cube_yaw": -2.8406167830367934,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 3,
+      "initial_arm": [
+        -0.9704053996709886,
+        0.9132580398969288
+      ],
+      "initial_cube_xy": [
+        0.4150186938208451,
+        0.033178267410585924
+      ],
+      "initial_cube_yaw": 1.0832959525579389,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        0.868337034319907,
+        0.9737135969629436
+      ],
+      "initial_cube_xy": [
+        0.1955603578877373,
+        0.34410178620129667
+      ],
+      "initial_cube_yaw": -1.1712918911597796,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        -0.42137781108133476,
+        -1.2242641499632723
+      ],
+      "initial_cube_xy": [
+        0.4386232878209639,
+        -0.23848724640343585
+      ],
+      "initial_cube_yaw": -2.0296361123391726,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 3,
+      "initial_arm": [
+        -0.6050276637512999,
+        -0.7085417618328433
+      ],
+      "initial_cube_xy": [
+        0.3790762843711091,
+        -0.2999085198839273
+      ],
+      "initial_cube_yaw": -2.0192882209971796,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.04801312669412023,
+        0.008962326144195103,
+        -0.5148261381309134
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        -0.675789505785036,
+        1.5435018080090406
+      ],
+      "initial_cube_xy": [
+        0.4245771644196069,
+        -0.14902222279685826
+      ],
+      "initial_cube_yaw": 1.393784516020582,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.06436089112234969,
+        -0.005290067229403138,
+        -0.6831981999265437
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        1.2624327594368532,
+        0.6056972591279788
+      ],
+      "initial_cube_xy": [
+        0.10387636409750689,
+        0.4951033830199326
+      ],
+      "initial_cube_yaw": 1.825223667289677,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.12231959143119803,
+        -0.022887499974127593,
+        -0.6614862110992221
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        -0.6898034069463894,
+        -0.4683977023617125
+      ],
+      "initial_cube_xy": [
+        0.432777550063361,
+        -0.31733808070776987
+      ],
+      "initial_cube_yaw": -1.9519618946779589,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.01381905826957503,
+        0.03374124282848122,
+        -0.2654284037193535
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        0.6050557432534929,
+        -1.5176538784569034
+      ],
+      "initial_cube_xy": [
+        0.3746849134927975,
+        0.2813582769565409
+      ],
+      "initial_cube_yaw": -1.8079196601553305,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        -0.9356257014445827,
+        -1.7750947464462217
+      ],
+      "initial_cube_xy": [
+        0.1136152767361183,
+        -0.40341388587809085
+      ],
+      "initial_cube_yaw": -0.13651747561165983,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        -0.40067909470347485,
+        0.7938629200773284
+      ],
+      "initial_cube_xy": [
+        0.4383390132109949,
+        -0.107440267321456
+      ],
+      "initial_cube_yaw": 2.6208122514417074,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        0.2823679498672631,
+        1.6928752335415242
+      ],
+      "initial_cube_xy": [
+        0.16791580004978227,
+        0.3943587774998421
+      ],
+      "initial_cube_yaw": -2.241798541839088,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        0.817586870882357,
+        -0.15397421210906015
+      ],
+      "initial_cube_xy": [
+        0.4748726208794702,
+        0.29591041200202767
+      ],
+      "initial_cube_yaw": 0.6012051772158586,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.11160337521549071,
+        -0.0773448411752757,
+        0.6627029961089508
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        0.07974979264518667,
+        -0.7232799882390739
+      ],
+      "initial_cube_xy": [
+        0.46480359158901796,
+        -0.002654202112268276
+      ],
+      "initial_cube_yaw": 0.9776627626764718,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.02167817709995142,
+        -0.029968097459167783,
+        0.9472250398696676
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        -1.2164153730565777,
+        -0.17912004812557503
+      ],
+      "initial_cube_xy": [
+        0.3082485363248081,
+        -0.45830908187661795
+      ],
+      "initial_cube_yaw": -2.0686999594387023,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.06530235596477402,
+        -0.04543192099226753,
+        0.2665621539322629
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        0.40389632280455556,
+        -1.4657659662675
+      ],
+      "initial_cube_xy": [
+        0.43768588704631833,
+        0.05371303329549596
+      ],
+      "initial_cube_yaw": 0.5855083761310103,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.07276704352062935,
+        -0.0707796007474273,
+        -0.9018001017005564
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        1.2359434188210139,
+        -1.832649411163578
+      ],
+      "initial_cube_xy": [
+        0.4066679352803671,
+        0.06746096225369191
+      ],
+      "initial_cube_yaw": 1.0342664210478762,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        -0.2702986926041768,
+        1.0599797217757914
+      ],
+      "initial_cube_xy": [
+        0.4775748630413952,
+        0.21912163034370244
+      ],
+      "initial_cube_yaw": 1.3038204869461616,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        -1.0944714757532397,
+        -0.028848439284201888
+      ],
+      "initial_cube_xy": [
+        0.31123826571463137,
+        -0.43187617007888285
+      ],
+      "initial_cube_yaw": -2.8431243177729426,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        0.4307507260289012,
+        -0.57549944622782
+      ],
+      "initial_cube_xy": [
+        0.4677519748212467,
+        0.27554358311911936
+      ],
+      "initial_cube_yaw": -2.6486839012799774,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        0.9270941861436792,
+        0.6446487480556979
+      ],
+      "initial_cube_xy": [
+        0.2245133343920624,
+        0.440971194748255
+      ],
+      "initial_cube_yaw": 2.031203926617457,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.012045906250091325,
+        -0.04153296991987534,
+        -0.3155237400180222
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        -1.3220026522557735,
+        -0.7812317654495957
+      ],
+      "initial_cube_xy": [
+        0.16950750736077008,
+        -0.4918970921461923
+      ],
+      "initial_cube_yaw": -0.037964239672421574,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.03423639118768029,
+        -0.05643902727547662,
+        0.3526121426089761
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        1.0996644686064092,
+        1.1490396556789797
+      ],
+      "initial_cube_xy": [
+        0.21717134797272197,
+        0.4652748434802891
+      ],
+      "initial_cube_yaw": -2.0503570175661796,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.06558301639082798,
+        -0.02509086204236218,
+        -0.7361267076555666
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        0.4698933794078799,
+        -1.2472093819888057
+      ],
+      "initial_cube_xy": [
+        0.45496429749129574,
+        0.07602959123642242
+      ],
+      "initial_cube_yaw": -2.2174149024599368,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.03577189911739781,
+        -0.004962135361171506,
+        0.8950440474030272
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        0.07866478850728398,
+        -1.5027727234499688
+      ],
+      "initial_cube_xy": [
+        0.45445795010236817,
+        -0.0787415967818096
+      ],
+      "initial_cube_yaw": 1.6958587101347513,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        1.3464962360439212,
+        -1.105521247256113
+      ],
+      "initial_cube_xy": [
+        0.36876323261022753,
+        0.1732797689465963
+      ],
+      "initial_cube_yaw": -1.283572897839603,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        -0.3520381498696914,
+        1.0861819931344026
+      ],
+      "initial_cube_xy": [
+        0.3283490059855119,
+        0.25995723705403273
+      ],
+      "initial_cube_yaw": 1.6252586986852915,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        -0.6126518929996169,
+        0.021554183429101093
+      ],
+      "initial_cube_xy": [
+        0.5112963257374447,
+        -0.18348216645319032
+      ],
+      "initial_cube_yaw": 3.0173871319206365,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        0.36717922041785944,
+        1.538135076706955
+      ],
+      "initial_cube_xy": [
+        0.060090009377401055,
+        -0.38002764090043506
+      ],
+      "initial_cube_yaw": 2.2803702849516547,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.04909615074237077,
+        -0.04709571599359296,
+        0.4370009010210265
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        0.8013917072932679,
+        -0.7195623093721883
+      ],
+      "initial_cube_xy": [
+        0.3427413254579787,
+        -0.05711172855492003
+      ],
+      "initial_cube_yaw": -2.5534888156103728,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.045659036048085064,
+        0.12489474111240437,
+        0.12440282674257985
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        0.8699015983473226,
+        1.1019066959418233
+      ],
+      "initial_cube_xy": [
+        0.38698550689444733,
+        -0.09756141070700095
+      ],
+      "initial_cube_yaw": -1.8441222347391701,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.06507471426239507,
+        -0.05405725373673504,
+        -0.2720944080666936
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        0.8959932662812851,
+        -1.7201664042635907
+      ],
+      "initial_cube_xy": [
+        0.3060123502004211,
+        0.3846974440060299
+      ],
+      "initial_cube_yaw": -0.033223115458674624,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.13121990073009934,
+        0.026473287029262733,
+        0.9094961980367733
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        0.5586399496271754,
+        1.6916465543501995
+      ],
+      "initial_cube_xy": [
+        0.5304429597381883,
+        0.11790198378660013
+      ],
+      "initial_cube_yaw": -3.074081003032776,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        0.8819311830866166,
+        0.0015356294623534161
+      ],
+      "initial_cube_xy": [
+        0.18362659736361303,
+        0.5073068695237735
+      ],
+      "initial_cube_yaw": 0.0712381362347343,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        -0.926545490646471,
+        0.15000580029060284
+      ],
+      "initial_cube_xy": [
+        0.4443937976094666,
+        0.20130435577965075
+      ],
+      "initial_cube_yaw": -2.142874751770083,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        -0.4641339713926933,
+        -0.01621467593653536
+      ],
+      "initial_cube_xy": [
+        -0.023554092498347556,
+        0.4855260087381432
+      ],
+      "initial_cube_yaw": 1.1743830539622166,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        0.6612910343142795,
+        0.5985858839352298
+      ],
+      "initial_cube_xy": [
+        0.33012420738437426,
+        0.32464506201377913
+      ],
+      "initial_cube_yaw": -0.5106655618723366,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.05327402318003372,
+        0.00857972911288283,
+        0.20048729973675217
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        -1.1918391717553196,
+        -1.0495723912937522
+      ],
+      "initial_cube_xy": [
+        0.3319333134018505,
+        -0.03646889970793493
+      ],
+      "initial_cube_yaw": -0.8188502388481651,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.03989136851855693,
+        0.06943654853259758,
+        0.7265495906349968
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        0.2621397883798986,
+        -0.020429464407099918
+      ],
+      "initial_cube_xy": [
+        0.35837299955494917,
+        -0.12755298946911944
+      ],
+      "initial_cube_yaw": -2.8074474864544534,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.09849297775138174,
+        -0.01919205787979733,
+        -0.345326475022963
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        -0.06677241030978665,
+        1.636944107743279
+      ],
+      "initial_cube_xy": [
+        0.47351275966081996,
+        0.27782077136700567
+      ],
+      "initial_cube_yaw": 0.27271462078683495,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.08836566182282697,
+        0.030093208626498686,
+        0.8632218468326109
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        0.48285803078101597,
+        0.4951770799157491
+      ],
+      "initial_cube_xy": [
+        0.514711022971135,
+        0.20384830785397362
+      ],
+      "initial_cube_yaw": 1.4210192967087263,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        -0.8192212251854498,
+        0.320951481452902
+      ],
+      "initial_cube_xy": [
+        0.4617300155229032,
+        -0.29013329003403404
+      ],
+      "initial_cube_yaw": -2.5564901765880492,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        1.084313940884581,
+        1.6171372631585874
+      ],
+      "initial_cube_xy": [
+        0.060549299440833725,
+        0.4161066782373064
+      ],
+      "initial_cube_yaw": 0.45362582707408583,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        1.2988971070579505,
+        -1.1856126445824557
+      ],
+      "initial_cube_xy": [
+        0.4090912652410753,
+        0.28748912465437115
+      ],
+      "initial_cube_yaw": -2.571540756963004,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 2,
+      "initial_arm": [
+        -1.283143482282659,
+        -0.5071304610848855
+      ],
+      "initial_cube_xy": [
+        0.3684147756795041,
+        -0.39547468777541034
+      ],
+      "initial_cube_yaw": 3.0389695694748555,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.04929562716460513,
+        0.01505879256243459,
+        -0.36309810552790833
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        -0.9606503843103057,
+        -1.49124120545571
+      ],
+      "initial_cube_xy": [
+        0.18478523924605172,
+        -0.4142520732016184
+      ],
+      "initial_cube_yaw": 2.0068021997541807,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.0555412816791014,
+        -0.09334823551890574,
+        0.6101056599923154
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        -1.2670365975240065,
+        0.6351691189597286
+      ],
+      "initial_cube_xy": [
+        0.4044496963211104,
+        -0.3815213263325518
+      ],
+      "initial_cube_yaw": 3.0512587024587,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.04590108381243432,
+        0.09152832449236559,
+        0.5165176665273323
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 2,
+      "initial_arm": [
+        -1.2890027844979703,
+        0.06324702431066243
+      ],
+      "initial_cube_xy": [
+        0.3611384887539379,
+        -0.3901637936793876
+      ],
+      "initial_cube_yaw": 0.5888317519834363,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.009332040937486009,
+        -0.025571087758753778,
+        0.6500218093815293
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        -1.194605785374472,
+        -1.770129886977946
+      ],
+      "initial_cube_xy": [
+        -0.06383728886058362,
+        -0.3837464571801677
+      ],
+      "initial_cube_yaw": -0.3995854189120718,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 2,
+      "initial_arm": [
+        0.4046506777227923,
+        0.1691800502156573
+      ],
+      "initial_cube_xy": [
+        0.5024420826352803,
+        0.19789453302286808
+      ],
+      "initial_cube_yaw": 1.7778259740853253,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        -1.3724913004720278,
+        0.8762513046831382
+      ],
+      "initial_cube_xy": [
+        0.4097876155839434,
+        -0.11566213160352408
+      ],
+      "initial_cube_yaw": -2.9025220099897084,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        0.7236982677556585,
+        -0.958110021062659
+      ],
+      "initial_cube_xy": [
+        0.46497317457585685,
+        0.011306969741468345
+      ],
+      "initial_cube_yaw": -0.793748068426694,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        -1.4007154682040488,
+        1.8346423020648763
+      ],
+      "initial_cube_xy": [
+        0.35366240052792314,
+        -0.16869158202291576
+      ],
+      "initial_cube_yaw": -2.6401034151176495,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.04743262905093317,
+        0.03623855210366219,
+        -0.18066643959505524
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        0.16846965630419097,
+        1.3876057942516744
+      ],
+      "initial_cube_xy": [
+        0.47185729430379186,
+        0.11007834488702707
+      ],
+      "initial_cube_yaw": 2.6372096905837656,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.0019869251731286608,
+        -0.02513446690782125,
+        0.37230171462573036
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        -0.59643792620697,
+        1.7696363999114726
+      ],
+      "initial_cube_xy": [
+        0.3738982211724006,
+        -0.23985693531291935
+      ],
+      "initial_cube_yaw": -2.916912984638173,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.022016045538097603,
+        0.003713515173600926,
+        -0.20974008572992098
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        -0.46419298002147014,
+        -1.39269121120957
+      ],
+      "initial_cube_xy": [
+        0.13037587315574825,
+        -0.45237343106219435
+      ],
+      "initial_cube_yaw": -1.8071048655315838,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.10591478701185512,
+        -0.07528236637838885,
+        -0.6814265076320021
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        -0.5608894011722265,
+        1.5187334959223113
+      ],
+      "initial_cube_xy": [
+        0.412586858950602,
+        -0.19423749536376372
+      ],
+      "initial_cube_yaw": -0.35430055608195676,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 2,
+      "initial_arm": [
+        -0.646281880219332,
+        0.1334277004487805
+      ],
+      "initial_cube_xy": [
+        0.518351747153686,
+        -0.1144498342831794
+      ],
+      "initial_cube_yaw": -1.2552806383228348,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        -0.1468354974670878,
+        1.002170906280762
+      ],
+      "initial_cube_xy": [
+        0.43712704945447217,
+        0.2810438132811665
+      ],
+      "initial_cube_yaw": -0.4002487870180338,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        -1.3503270703971675,
+        1.1753722523590042
+      ],
+      "initial_cube_xy": [
+        0.3839136397040963,
+        -0.19253926273363758
+      ],
+      "initial_cube_yaw": -0.8361848772523133,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        -1.156308389619936,
+        0.16216159044597367
+      ],
+      "initial_cube_xy": [
+        0.3936625991004968,
+        -0.38589875784173555
+      ],
+      "initial_cube_yaw": 1.7045628873913516,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.06765134310500807,
+        -0.0077548182737044585,
+        0.5270190659770464
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        -0.2909779524486835,
+        -1.8373924651218
+      ],
+      "initial_cube_xy": [
+        0.09159987631624737,
+        -0.4229888966986371
+      ],
+      "initial_cube_yaw": 1.4371223150660617,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.06884643395399764,
+        0.08054045635480318,
+        -0.8650274447067632
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        1.1815729562075765,
+        1.0679744599931098
+      ],
+      "initial_cube_xy": [
+        0.25296722970882124,
+        0.46142236427181277
+      ],
+      "initial_cube_yaw": -2.443493817940679,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.014018852249631385,
+        0.051216265232144155,
+        -0.8507939798470121
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        -1.3365982633656104,
+        -1.2565491666774262
+      ],
+      "initial_cube_xy": [
+        0.04150789142703096,
+        -0.48197533209518845
+      ],
+      "initial_cube_yaw": 0.5622941897438882,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.03155642237840883,
+        0.0693658274331737,
+        -0.23839368757409685
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        -0.1200138707910745,
+        1.6808416062372884
+      ],
+      "initial_cube_xy": [
+        0.28015381046355736,
+        0.35592278279893413
+      ],
+      "initial_cube_yaw": -0.7609186734400257,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        0.11126697123971852,
+        -0.12394337621644991
+      ],
+      "initial_cube_xy": [
+        0.48750872177294363,
+        0.16986340928050514
+      ],
+      "initial_cube_yaw": 2.003176038363269,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        1.2524618611636378,
+        -1.3089633125731566
+      ],
+      "initial_cube_xy": [
+        0.3623357571509085,
+        0.13394584735380552
+      ],
+      "initial_cube_yaw": 0.16590880650592865,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        -0.4397516435511727,
+        -0.7782911775060548
+      ],
+      "initial_cube_xy": [
+        0.368750748558652,
+        -0.26683669154277956
+      ],
+      "initial_cube_yaw": 0.633898265262292,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        -0.6254324128479585,
+        -0.7161944644564899
+      ],
+      "initial_cube_xy": [
+        0.3346165690053902,
+        -0.2110586358586769
+      ],
+      "initial_cube_yaw": 2.686919090867552,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.030611563765566143,
+        0.03195102020358114,
+        0.7273417444360093
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        1.0343834455349985,
+        -0.49070271551199607
+      ],
+      "initial_cube_xy": [
+        0.23368750765929985,
+        0.26656887938363144
+      ],
+      "initial_cube_yaw": 0.6323208670664466,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.06282518726809391,
+        0.08435760780150663,
+        -0.5576262158835488
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        -0.8203405743166994,
+        -0.40601615971287597
+      ],
+      "initial_cube_xy": [
+        0.22918225528491748,
+        -0.40357642193496557
+      ],
+      "initial_cube_yaw": -0.726606326963307,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.116987079428603,
+        0.01630722515392238,
+        0.36046305431608383
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        -0.32404668025103844,
+        -1.6746635744788776
+      ],
+      "initial_cube_xy": [
+        0.45575931650610857,
+        -0.15502467830690728
+      ],
+      "initial_cube_yaw": -2.5799197704122108,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.08290120718171848,
+        0.06830337895501311,
+        -0.061498595278717705
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        0.012265312668698014,
+        1.183094604264559
+      ],
+      "initial_cube_xy": [
+        0.5468711488399249,
+        0.05849590499866582
+      ],
+      "initial_cube_yaw": 3.0053087805807204,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        -0.06929708960416603,
+        -0.9782169579747748
+      ],
+      "initial_cube_xy": [
+        0.4316624930449311,
+        -0.3399769808069699
+      ],
+      "initial_cube_yaw": -1.0558310367274593,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        0.7267079574710988,
+        -0.8793125416924252
+      ],
+      "initial_cube_xy": [
+        0.43911456300203744,
+        -0.11132591875977736
+      ],
+      "initial_cube_yaw": -2.010280504640318,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        1.2050295752895372,
+        0.18018699510896363
+      ],
+      "initial_cube_xy": [
+        0.28019885252354904,
+        0.2874195447437608
+      ],
+      "initial_cube_yaw": -3.113828614760321,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        -0.675061614242026,
+        -0.15420736200932694
+      ],
+      "initial_cube_xy": [
+        0.5101655120587211,
+        -0.07809358465907196
+      ],
+      "initial_cube_yaw": 0.644819004487931,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.0013965631646246674,
+        -0.03942930088658417,
+        -0.24302344142819954
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        -0.7477100719554138,
+        -0.2037995174841205
+      ],
+      "initial_cube_xy": [
+        0.3327318651714487,
+        -0.12069076116040336
+      ],
+      "initial_cube_yaw": -0.867987384662642,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.029642565692781644,
+        -0.01672454985399358,
+        -0.5005796662311397
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        0.5934174985950051,
+        0.15069493915796173
+      ],
+      "initial_cube_xy": [
+        0.4988552551577465,
+        -0.0893487248395517
+      ],
+      "initial_cube_yaw": -1.9836162915728228,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.09005021394364605,
+        0.010808136017358133,
+        0.9476104641559255
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        0.6406757981375113,
+        0.9541258103899546
+      ],
+      "initial_cube_xy": [
+        0.5022012600242797,
+        -0.14801101531832558
+      ],
+      "initial_cube_yaw": 2.0348618749668415,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.038474299449174514,
+        0.025575874267931207,
+        0.28579852316887533
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        -0.3547685607230542,
+        0.9526948568822227
+      ],
+      "initial_cube_xy": [
+        0.5011854422782336,
+        -0.17692765822208226
+      ],
+      "initial_cube_yaw": -1.9358743538546688,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        -0.8047480745317829,
+        -0.8098527324898961
+      ],
+      "initial_cube_xy": [
+        0.26814013781858304,
+        -0.3873274284726708
+      ],
+      "initial_cube_yaw": 2.9395324851120943,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        0.7707133306022997,
+        -0.4214852985350628
+      ],
+      "initial_cube_xy": [
+        0.15423138554169205,
+        0.5238871635505241
+      ],
+      "initial_cube_yaw": 2.4353479411053556,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        -1.182732185521623,
+        -1.1044493875630206
+      ],
+      "initial_cube_xy": [
+        0.07128848446486412,
+        -0.376585385587479
+      ],
+      "initial_cube_yaw": -1.1014362582744934,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        1.1783835449801698,
+        0.44097278169719356
+      ],
+      "initial_cube_xy": [
+        0.2046631284638871,
+        0.44606018100307937
+      ],
+      "initial_cube_yaw": -1.1086070027864166,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.013128176360424241,
+        -0.10818170132859659,
+        0.6325688185790628
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        -0.060370523121875186,
+        -1.3351779581616223
+      ],
+      "initial_cube_xy": [
+        0.31984515544506803,
+        -0.32150098920303327
+      ],
+      "initial_cube_yaw": -1.8868678200724969,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.05447616338892551,
+        -0.05094562959058284,
+        -0.6548161679621463
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        -0.8476824960456917,
+        0.2559439809077575
+      ],
+      "initial_cube_xy": [
+        0.4913410491888314,
+        -0.21174026581178956
+      ],
+      "initial_cube_yaw": 1.2894998326684028,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.10515366560885644,
+        0.10172090574751395,
+        0.6971052260379502
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        1.2697203385559386,
+        1.7365937554066662
+      ],
+      "initial_cube_xy": [
+        -0.055972984145897964,
+        0.3924708604074298
+      ],
+      "initial_cube_yaw": -2.931505891030664,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.016934118875150443,
+        0.04745514964006536,
+        -0.9883446740785717
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        0.37582285324597,
+        -0.814249651750407
+      ],
+      "initial_cube_xy": [
+        0.49788783086197985,
+        0.1683851048525509
+      ],
+      "initial_cube_yaw": -1.0728666859386569,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        0.4600104405696128,
+        1.279501634429657
+      ],
+      "initial_cube_xy": [
+        0.263842274189549,
+        0.28706324931244565
+      ],
+      "initial_cube_yaw": 2.9206424173314316,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        -0.8504502730731447,
+        0.01709416008635345
+      ],
+      "initial_cube_xy": [
+        0.4300925054873628,
+        -0.3221130609476329
+      ],
+      "initial_cube_yaw": -0.07209813464885384,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 4,
+      "initial_arm": [
+        0.2034422297358478,
+        -1.4000690520577146
+      ],
+      "initial_cube_xy": [
+        0.3874427138362125,
+        -0.2661758967610205
+      ],
+      "initial_cube_yaw": 2.5414245211026056,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        0.4224776355046249,
+        1.6247919218234568
+      ],
+      "initial_cube_xy": [
+        0.06155059188825297,
+        0.4474044841046055
+      ],
+      "initial_cube_yaw": 2.8528659278804405,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.01672012504374826,
+        0.03949441811671686,
+        -0.2762503849126112
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        -0.16068018064741096,
+        -1.8731836486490274
+      ],
+      "initial_cube_xy": [
+        0.3061231699916573,
+        -0.23025412314393823
+      ],
+      "initial_cube_yaw": -0.61157672261989,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.11312840282858344,
+        0.09290181470440534,
+        0.08145170985638406
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        -0.5372015363722945,
+        1.7798093199298002
+      ],
+      "initial_cube_xy": [
+        0.39643568962312875,
+        -0.07342148993966202
+      ],
+      "initial_cube_yaw": 0.8851767926908254,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.005073569450650689,
+        -0.09857431074168077,
+        -0.3195980861663241
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 2,
+      "initial_arm": [
+        0.9466297827440424,
+        -0.4089037332459229
+      ],
+      "initial_cube_xy": [
+        0.46257523992634486,
+        0.31064272319707426
+      ],
+      "initial_cube_yaw": -1.74310550664092,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.054560185974386395,
+        -0.015619731128805698,
+        0.1001323909383891
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        0.9567185119358148,
+        -0.9011808432385775
+      ],
+      "initial_cube_xy": [
+        0.5103342449125181,
+        0.19698746730485753
+      ],
+      "initial_cube_yaw": 1.82014527750405,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        1.3509237068748396,
+        0.5006174491215702
+      ],
+      "initial_cube_xy": [
+        0.11302914602514702,
+        0.48189091328364847
+      ],
+      "initial_cube_yaw": -1.301506797029537,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        -1.0343311615578954,
+        1.5481640435505128
+      ],
+      "initial_cube_xy": [
+        0.4569983609765509,
+        -0.07322625554435204
+      ],
+      "initial_cube_yaw": -2.4325072316478398,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        1.3100917743776554,
+        -0.31256125982328364
+      ],
+      "initial_cube_xy": [
+        0.34346464493050566,
+        0.4134795645046175
+      ],
+      "initial_cube_yaw": 1.7865371682246067,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        0.4439183603671304,
+        0.8837180616494567
+      ],
+      "initial_cube_xy": [
+        0.45326201234483926,
+        0.244263597634559
+      ],
+      "initial_cube_yaw": 1.0226540709584526,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.011534945091665518,
+        0.017967167390008504,
+        0.052001157681382804
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        -0.8725224270100943,
+        0.22759013185535926
+      ],
+      "initial_cube_xy": [
+        0.5257495491925782,
+        -0.11078699291551813
+      ],
+      "initial_cube_yaw": 2.6102648772561414,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.07903767863816046,
+        0.05946397116243894,
+        -0.6511263376478134
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 2,
+      "initial_arm": [
+        -0.8610744742775798,
+        1.0456886906522556
+      ],
+      "initial_cube_xy": [
+        0.4094901141328969,
+        0.07556607500650393
+      ],
+      "initial_cube_yaw": -1.1113356669025953,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.037145634662984185,
+        0.060938885114783396,
+        -0.13055651281947545
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        0.5627532635833279,
+        0.60592571653339
+      ],
+      "initial_cube_xy": [
+        0.08892940978964556,
+        0.47197123107173267
+      ],
+      "initial_cube_yaw": 0.703396935536797,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.03783558309183552,
+        0.026788076197036232,
+        -0.832707540757178
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        -0.27925105493046654,
+        -1.6598399359737321
+      ],
+      "initial_cube_xy": [
+        0.3722617409165241,
+        -0.2334399730267064
+      ],
+      "initial_cube_yaw": 2.7452807767045186,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        -0.5780777332127877,
+        -1.9304566447067537
+      ],
+      "initial_cube_xy": [
+        0.1371157799957566,
+        -0.33252062789062625
+      ],
+      "initial_cube_yaw": 2.1520043096107626,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        0.9855072300538519,
+        1.6044654904073377
+      ],
+      "initial_cube_xy": [
+        0.23502609735491103,
+        0.4010911688488648
+      ],
+      "initial_cube_yaw": 2.9513710677988962,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": true,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        -0.5270236391358134,
+        0.6289880857094339
+      ],
+      "initial_cube_xy": [
+        0.48448262950978427,
+        0.09749864243757869
+      ],
+      "initial_cube_yaw": 2.5363732136136514,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        0.4878190758224126,
+        -0.09927116566351435
+      ],
+      "initial_cube_xy": [
+        0.3490630600710634,
+        0.029448561047283578
+      ],
+      "initial_cube_yaw": 2.8890275205369544,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.005964212515935238,
+        -0.03076711390423294,
+        0.010710140725525452
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        1.0280401921116018,
+        0.6922468658956196
+      ],
+      "initial_cube_xy": [
+        0.3634157907122294,
+        0.023891124023577515
+      ],
+      "initial_cube_yaw": 2.4153309787507116,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.10763780100554801,
+        -0.0750124254983406,
+        0.24573345295529525
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        0.8384993960005531,
+        -0.13862238781887815
+      ],
+      "initial_cube_xy": [
+        0.08860634955502575,
+        0.5423856099968067
+      ],
+      "initial_cube_yaw": 3.1187255911580545,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.05300505174878539,
+        -0.12234897740231887,
+        -0.8603568065685874
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        0.0986482308099379,
+        0.8418508966606231
+      ],
+      "initial_cube_xy": [
+        0.2002668729085073,
+        -0.3769080505258119
+      ],
+      "initial_cube_yaw": 1.7247428327878813,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.022455585822486464,
+        0.04448377158881838,
+        -0.08385403456734042
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        -0.3430324235589013,
+        0.5678752823195845
+      ],
+      "initial_cube_xy": [
+        0.33293374608955445,
+        -0.03324102474627735
+      ],
+      "initial_cube_yaw": -0.5227997354078964,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        -0.012771142136753344,
+        -1.6019824344190734
+      ],
+      "initial_cube_xy": [
+        0.14311965894521955,
+        -0.4568830179135016
+      ],
+      "initial_cube_yaw": 2.83962256886253,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        0.011447242889591092,
+        -0.6395022850275991
+      ],
+      "initial_cube_xy": [
+        0.03383101904229799,
+        0.3688843263593583
+      ],
+      "initial_cube_yaw": -2.7069801181577438,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": false,
+      "attempts": 1,
+      "initial_arm": [
+        -0.3228826097656774,
+        0.6797741510514035
+      ],
+      "initial_cube_xy": [
+        0.2922529257562694,
+        0.4405702406796993
+      ],
+      "initial_cube_yaw": -0.41799594756492553,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        -0.03357200065911137,
+        1.778070269680737
+      ],
+      "initial_cube_xy": [
+        0.24210826997823268,
+        0.42975593110492427
+      ],
+      "initial_cube_yaw": 2.2261062797251787,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.08017891291066638,
+        0.0892347840835557,
+        0.8093566556665981
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": true,
+      "attempts": 2,
+      "initial_arm": [
+        0.9843096248171432,
+        -0.6206242335259144
+      ],
+      "initial_cube_xy": [
+        0.345357786092672,
+        -0.063259233472617
+      ],
+      "initial_cube_yaw": 0.5256293708912523,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.03880184892500255,
+        -0.046851277533202534,
+        -0.7853454136477211
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        -0.5715463149180837,
+        1.5865309857013883
+      ],
+      "initial_cube_xy": [
+        0.27450877146893987,
+        -0.44019397459346077
+      ],
+      "initial_cube_yaw": 3.112462969144178,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        -0.039093854491910045,
+        -0.007533922902808196,
+        0.6844976142629204
+      ]
+    },
+    {
+      "targeted": false,
+      "moving_start": true,
+      "attempts": 1,
+      "initial_arm": [
+        1.0577958960315381,
+        -1.108437371925877
+      ],
+      "initial_cube_xy": [
+        0.522055914469784,
+        0.056436802699280475
+      ],
+      "initial_cube_yaw": 1.9766395294961816,
+      "initial_arm_velocity": [
+        0.0,
+        0.0
+      ],
+      "initial_cube_velocity": [
+        0.050164356711718594,
+        -0.0003685160884908588,
+        0.9430750405578123
+      ]
+    }
+  ],
+  "execution": {
+    "workers_requested": 8,
+    "workers_used": 8,
+    "collection_seconds": 5.124859099998503
+  }
+}

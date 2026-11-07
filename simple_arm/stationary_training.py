@@ -106,7 +106,8 @@ def train(dataset, source, output, horizon, stationary_weight, config=TrainingCo
     checkpoint = torch.load(source, map_location="cpu", weights_only=True)
     if checkpoint["stride"] != 5 or checkpoint["metadata"] != dataset["metadata"]:
         raise ValueError("Training requires the exact source dataset and 100 ms interval")
-    model = make_model(checkpoint.get("hidden_width", 128))
+    from .contact_models import model_from_checkpoint
+    model = model_from_checkpoint(checkpoint)
     model.load_state_dict(checkpoint["weights"])
     optimizer = torch.optim.Adam(model.parameters(), lr=config.learning_rate)
     training = split_tensors(dataset, 0, config.stationary_threshold)
