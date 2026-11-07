@@ -144,3 +144,17 @@ comparison remains untrained.
 
 The whole run lives under Git-ignored `runs/`; retain it separately when moving
 machines. Small real-simulator integration tests are in `tests/test_online_training.py`.
+
+## Visualize the selected model in MPC
+
+```powershell
+.\.venv\Scripts\python.exe -m simple_arm.cube_mpc view --checkpoint runs/arm_cube_online/recursive/model.pt --dataset data/arm_cube_contact_boundary/independent.npz --episode 23 --device cuda --command-rate-limit 0.2 --candidates 128 --iterations 3
+```
+
+The viewer accepts the regenerated boundary scenarios while historical benchmark
+commands retain their seed-292 guard. CUDA inference is optional; `--device cpu`
+supports the laptop. The reduced CEM search is explicit for interactive speed;
+controller defaults remain unchanged. Green marks the goal, magenta the predicted
+cube trajectory and endpoint. Keys 6/7 change target X, 8/9 change target Y,
+Enter resets, and R selects another nearby cube spawn. Timing/fallback warnings
+are limited to one every five seconds. Close the MuJoCo window to stop.

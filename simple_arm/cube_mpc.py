@@ -38,6 +38,8 @@ class Config:
     velocity_weight: float = .001
     seed: int = 42
     scoring: str = "original"
+    approach_weight: float = .1
+    approach_radius: float = .08
     reachability_weight: float = 10.
     cube_speed_weight: float = .1
     escape_velocity_weight: float = 1.
@@ -53,8 +55,8 @@ class Config:
                 raise ValueError(f"Invalid {key}")
         if self.candidates < 2 or self.knots > self.horizon:
             raise ValueError("Require >=2 candidates and knots <= horizon")
-        if self.scoring not in ("original", "workspace"):
-            raise ValueError("scoring must be original or workspace")
+        if self.scoring not in ("original", "workspace", "approach"):
+            raise ValueError("scoring must be original, workspace or approach")
         values = [v for k, v in asdict(self).items() if k not in ("horizon", "candidates", "iterations", "knots", "seed", "scoring")]
         if not np.isfinite(values).all() or min(values) < 0:
             raise ValueError("Settings must be finite and nonnegative")
@@ -71,10 +73,17 @@ class Config:
 
 
 class ModelAdapter:
-    """CPU tensor inference using the training code's exact state transition."""
+    """Exact tensor transition; optional CUDA inference preserves caller device."""
 
-    def __init__(self, path=CHECKPOINT):
+    def __init__(self, path=CHECKPOINT, device="cpu"):
         torch.set_num_threads(2)
+        if device not in ("cpu", "cuda", "auto"):
+            raise ValueError("device must be cpu, cuda or auto")
+        if device == "auto":
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+        if device == "cuda" and not torch.cuda.is_available():
+            raise RuntimeError("CUDA inference requested but unavailable")
+        self.device = torch.device(device)
         self.checkpoint = torch.load(path, map_location="cpu", weights_only=True)
         c, m = self.checkpoint, self.checkpoint["metadata"]
         if (c["stride"] != 5 or m.get("base_dt") != BASE_DT
@@ -88,12 +97,13 @@ class ModelAdapter:
                 raise ValueError(f"Invalid normalization: {name}")
             if name.endswith("scale") and not (value > 0).all():
                 raise ValueError("Normalization scales must be positive")
-        self.model = model_from_checkpoint(c).eval()
+        self.model = model_from_checkpoint(c).to(self.device).eval()
         self.model.load_state_dict(c["weights"])
         self.model.requires_grad_(False)
+        self.runtime = dict(c, **{name: c[name].to(self.device) for name in ("input_mean", "input_scale", "target_mean", "target_scale")})
 
     def __call__(self, current, action):
-        return differentiable_next(self.model, current, action, self.checkpoint)
+        return differentiable_next(self.model, current.to(self.device), action.to(self.device), self.runtime).to(current.device)
 
 
 def interpolate(values, steps):
@@ -133,13 +143,32 @@ def validate_command_rate(command, previous, rate_limit, dt=DT):
         raise RuntimeError("Selected command violates configured command-rate limit")
 
 
-def score_components(predicted, actions, target, previous, config, workspace=None):
+def goal_gate(observed, target):
+    squared = (observed[4:6] - target).square().sum()
+    return squared / (squared + .02**2)
+
+
+def tip_xy(predicted, geometry):
+    first, second = geometry.lengths
+    shoulder, elbow = predicted[..., 0], predicted[..., 1]
+    return geometry.origin.to(predicted) + torch.stack((
+        first * shoulder.cos() + second * (shoulder + elbow).cos(),
+        first * shoulder.sin() + second * (shoulder + elbow).sin()), -1)
+
+
+def score_components(predicted, actions, target, previous, config, workspace=None, gate=None):
     distance = (predicted[..., 4:6] - target).square().sum(-1) / .1**2
     changes = torch.diff(torch.cat([previous.expand(len(actions), 1, 2), actions], 1), dim=1)
     components = {"target": config.distance_weight * distance.mean(1),
                   "terminal_target": config.terminal_weight * distance[:, -1],
                   "command_changes": config.change_weight * changes.square().mean((1, 2)),
                   "joint_velocity": config.velocity_weight * predicted[..., 2:4].square().mean((1, 2))}
+    if config.scoring == "approach":
+        if workspace is None or gate is None:
+            raise ValueError("Approach scoring requires geometry and observed goal gate")
+        distance_to_cube = torch.linalg.vector_norm(tip_xy(predicted, workspace) - predicted[..., 4:6], dim=-1)
+        approach = (distance_to_cube - config.approach_radius).clamp_min(0)
+        components["approach"] = config.approach_weight * gate * (approach / .1).square().mean(1)
     if config.scoring == "workspace":
         if workspace is None:
             raise ValueError("Workspace scoring requires robot geometry")
@@ -147,14 +176,14 @@ def score_components(predicted, actions, target, previous, config, workspace=Non
     return components
 
 
-def trajectory_cost(predicted, actions, target, previous, joint_limits, config, workspace=None):
-    if workspace is None and config.scoring == "workspace":
+def trajectory_cost(predicted, actions, target, previous, joint_limits, config, workspace=None, gate=None):
+    if workspace is None and config.scoring in ("workspace", "approach"):
         from .cube_workspace import Workspace
         workspace = Workspace(joint_limits)
-    terms = score_components(predicted, actions, target, previous, config, workspace)
+    terms = score_components(predicted, actions, target, previous, config, workspace, gate)
     # Preserve the original summation order for exact baseline reproducibility.
     cost = terms["target"] + terms["terminal_target"] + terms["command_changes"] + terms["joint_velocity"]
-    for name in ("workspace", "excess_cube_speed", "escape_velocity", "terminal_workspace", "terminal_cube_velocity"):
+    for name in ("approach", "workspace", "excess_cube_speed", "escape_velocity", "terminal_workspace", "terminal_cube_velocity"):
         if name in terms:
             cost = cost + terms[name]
     finite = torch.isfinite(predicted).all(dim=(1, 2)) & torch.isfinite(cost)
@@ -188,7 +217,7 @@ class CEMController:
         if not torch.isfinite(torch.stack([self.lower, self.upper])).all() or (self.lower >= self.upper).any():
             raise ValueError("No legal command interval")
         from .cube_workspace import Workspace
-        self.workspace = Workspace(self.joint_limits) if config.scoring == "workspace" else None
+        self.workspace = Workspace(self.joint_limits) if config.scoring in ("workspace", "approach") else None
         self.reset()
 
     def reset(self):
@@ -212,6 +241,7 @@ class CEMController:
         # Permit only a legal hold command, including in the all-infeasible case.
         if ((previous < self.lower) | (previous > self.upper)).any():
             raise ValueError("Previous command outside safe command bounds")
+        gate = goal_gate(observed, target) if c.scoring == "approach" else None
         mean = self.warm_mean(previous)
         std = torch.full_like(mean, c.initial_std)
         initial_mean = mean.clone()
@@ -226,7 +256,7 @@ class CEMController:
             if c.command_rate_limit:
                 actions = actions.clamp(self.lower, self.upper)
             predicted = rollout(self.predict, observed, actions)
-            costs, nonfinite, limits = trajectory_cost(predicted, actions, target, previous, self.joint_limits, c, self.workspace)
+            costs, nonfinite, limits = trajectory_cost(predicted, actions, target, previous, self.joint_limits, c, self.workspace, gate)
             feasible = torch.isfinite(costs)
             count = int(feasible.sum())
             if count:
@@ -257,15 +287,17 @@ class CEMController:
         diagnostics["selected_max_command_rate_rad_s"] = float(
             torch.diff(torch.cat([previous[None], winner], dim=0), dim=0).abs().max() / DT)
         diagnostics["score_components"] = ({} if fallback else {name: float(value[0]) for name, value in
-            score_components(winner_prediction[None], winner[None], target, previous, c, self.workspace).items()})
+            score_components(winner_prediction[None], winner[None], target, previous, c, self.workspace, gate).items()})
+        diagnostics["goal_gate"] = None if gate is None else float(gate)
+        diagnostics["predicted_cube_displacement_xy_m"] = None if fallback else (winner_prediction[-1, 4:6] - observed[4:6]).tolist()
         return Plan(winner.numpy().copy(), winner_prediction.numpy().copy(),
                     None if fallback else winner_cost, diagnostics)
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["evaluate", "compare", "compare-rate", "view"])
-    parser.add_argument("--checkpoint", type=Path, help="Model path; compare-rate defaults to stationary_20, other commands to refined Medium")
+    parser.add_argument("command", choices=["evaluate", "compare", "compare-rate", "compare-approach", "view"])
+    parser.add_argument("--checkpoint", type=Path, help="Model path; compare-rate defaults to stationary_20, compare-approach to online recursive, other commands to refined Medium")
     parser.add_argument("--dataset", type=Path, default=DATASET)
     parser.add_argument("--output", type=Path, default=Path("runs/cube_cem_initial"))
     parser.add_argument("--episode", type=int, choices=[23, 99, 139, 159], default=23)
@@ -275,17 +307,26 @@ def main():
     spawn.add_argument("--spawn-seed", type=int, help="Viewer random close/reachable cube spawn; separate from CEM --seed")
     parser.add_argument("--mode", choices=["cem", "no-action"], default="cem")
     parser.add_argument("--seconds", type=float, help="Viewer wall-clock duration for smoke tests")
+    parser.add_argument("--device", choices=("cpu", "cuda", "auto"), default="cpu", help="Neural inference device for view/compare-approach; default CPU")
     for name, value in asdict(Config()).items():
         parser.add_argument("--" + name.replace("_", "-"), type=type(value), default=value,
-                            help="Maximum joint-target slew in rad/s per joint (default: 0.2); 0 disables" if name == "command_rate_limit" else None,
-                            **({"choices": ["original", "workspace"]} if name == "scoring" else {}))
+                            help={"command_rate_limit": "Maximum joint-target slew in rad/s per joint (default: 0.2); 0 disables",
+                                  "approach_weight": "Weight of gated normalized approach cost (default: 0.1)",
+                                  "approach_radius": "Neutral tip-to-cube centroid XY radius in meters (default: 0.08)"}.get(name),
+                            **({"choices": ["original", "workspace", "approach"]} if name == "scoring" else {}))
     args = parser.parse_args()
     if args.command != "view" and (args.cube is not None or args.spawn_seed is not None):
         parser.error("--cube and --spawn-seed are viewer options")
+    if args.command not in ("view", "compare-approach") and args.device != "cpu":
+        parser.error("--device is a viewer option; benchmarks retain CPU inference")
     config = Config(**{name: getattr(args, name) for name in asdict(Config())})
     checkpoint = args.checkpoint or (Path("runs/arm_cube_stationary_experiment/stationary_20/model.pt")
                                      if args.command == "compare-rate" else CHECKPOINT)
-    if args.command == "compare-rate":
+    if args.command == "compare-approach":
+        from .cube_approach_experiment import compare
+        output = Path("runs/cube_cem_approach") if args.output == Path("runs/cube_cem_initial") else args.output
+        compare(args.checkpoint or Path("runs/arm_cube_online/recursive/model.pt"), args.dataset, output, config, device=args.device)
+    elif args.command == "compare-rate":
         from .cube_rate_experiment import compare
         output = Path("runs/cube_cem_command_rate") if args.output == Path("runs/cube_cem_initial") else args.output
         compare(checkpoint, args.dataset, output, config)
@@ -299,7 +340,7 @@ def main():
     else:
         from .cube_mpc_viewer import view
         view(checkpoint, args.dataset, args.episode, args.target, args.mode, config, args.seconds,
-             cube=args.cube, spawn_seed=args.spawn_seed)
+             cube=args.cube, spawn_seed=args.spawn_seed, device=args.device)
 
 
 if __name__ == "__main__":

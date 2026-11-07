@@ -40,10 +40,11 @@ def source_hashes(checkpoint, dataset):
     return {str(p): file_hash(p) for p in sorted(paths)}
 
 
-def load_cases(path):
+def load_cases(path, *, expected_seed=292):
     data = load_boundary(path)
-    if data["metadata"]["seed"] != 292 or data["metadata"]["kinds"] != ["overhead", "near_miss", "light_contact", "clear_push"]:
-        raise ValueError("Expected saved independent boundary dataset (seed 292)")
+    if ((expected_seed is not None and data["metadata"]["seed"] != expected_seed)
+            or data["metadata"]["kinds"] != ["overhead", "near_miss", "light_contact", "clear_push"]):
+        raise ValueError(f"Expected saved independent boundary dataset (seed {expected_seed})")
     cases = {}
     for index in CASES:
         initial = data["states"][index, 0].copy()
@@ -63,7 +64,7 @@ def initialize(initial):
     return simulation
 
 
-def execute_first(simulation, command):
+def execute_first(simulation, command, contact_samples=None):
     """One command, exactly 50 physics steps, with observations after stepping."""
     if simulation.frame_skip != 1 or not np.isclose(simulation.model.opt.timestep * 50, DT, atol=1e-12):
         raise ValueError("Execution requires 50 x 2 ms physics steps")
@@ -75,6 +76,8 @@ def execute_first(simulation, command):
     for _ in range(50):
         simulation.step(command)
         fine.append(simulation.extract())
+        if contact_samples is not None:
+            contact_samples.append(simulation.contact())
     return simulation.extract(), np.asarray(fine)
 
 
@@ -84,13 +87,14 @@ def run_episode(initial, target, predict, config, duration=5., mode="cem"):
     planner = CEMController(predict, simulation.action_limits, joint_limits, config) if mode == "cem" else None
     previous = initial[:2].copy()
     states, fine_states, commands, predictions, diagnostics, timings, costs = [simulation.extract()], [], [], [], [], [], []
+    contacts = []
     for step in range(round(duration / DT)):
         tick = time.perf_counter()
         plan = planner.plan(states[-1], target, previous) if planner is not None else None
         elapsed = time.perf_counter() - tick if planner is not None else 0.
         command = plan.actions[0] if plan is not None else initial[:2].copy()
         validate_command_rate(command, previous, config.command_rate_limit)
-        observed, fine = execute_first(simulation, command)
+        observed, fine = execute_first(simulation, command, contacts)
         states.append(observed)
         fine_states.extend(fine)
         commands.append(command.copy())
@@ -104,7 +108,8 @@ def run_episode(initial, target, predict, config, duration=5., mode="cem"):
         previous = command.copy()
     return {"states": np.asarray(states), "fine_states": np.asarray(fine_states), "commands": np.asarray(commands),
             "predictions": np.asarray(predictions), "timings": np.asarray(timings),
-            "costs": costs, "diagnostics": diagnostics, "joint_limits": joint_limits}
+            "costs": costs, "diagnostics": diagnostics, "joint_limits": joint_limits,
+            "actual_contacts": np.asarray(contacts, dtype=bool)}
 
 
 def sustained_success(distances, physics_dt=.002, tolerance=TOLERANCE, window=SUCCESS_SECONDS):

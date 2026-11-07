@@ -99,15 +99,15 @@ def draw(scene, target, predicted):
     geom(mujoco.mjtGeom.mjGEOM_BOX, [.035] * 3, endpoint[4:7], [.9, .1, .8, .3], rotation)
 
 
-def view(checkpoint, dataset, episode, target, mode, config, seconds=None, *, cube=None, spawn_seed=None):
+def view(checkpoint, dataset, episode, target, mode, config, seconds=None, *, cube=None, spawn_seed=None, device="cpu"):
     if seconds is not None and (not np.isfinite(seconds) or seconds <= 0):
         raise ValueError("seconds must be positive and finite")
-    base, demonstrated_target = load_cases(dataset)[episode]
+    base, demonstrated_target = load_cases(dataset, expected_seed=None)[episode]
     requested_target = target
     initial, original_target = spawn_scenario(base, demonstrated_target, requested_target, cube, spawn_seed)
     target = original_target.copy()
     simulation = initialize(initial)
-    predict = ModelAdapter(checkpoint) if mode == "cem" else None
+    predict = ModelAdapter(checkpoint, device=device) if mode == "cem" else None
     planner = CEMController(predict, simulation.action_limits, simulation.model.jnt_range[simulation.joint_ids], config) if predict else None
     keys = SimpleQueue()
     previous, observed = initial[:2].copy(), simulation.extract()
@@ -117,6 +117,8 @@ def view(checkpoint, dataset, episode, target, mode, config, seconds=None, *, cu
     print("Green: target; magenta: selected neural trajectory and unverified endpoint forecast.", flush=True)
     print(f"Joint-command rate limit: {config.command_rate_limit:g} rad/s (0 = unlimited)", flush=True)
     print(f"Cube XY: {initial[4:6].tolist()}; target: {target.tolist()}; spawn seed: {spawn_seed}", flush=True)
+    print(f"Checkpoint: {checkpoint}; inference: {predict.device if predict else 'no-action'}", flush=True)
+    last_warning = float("-inf")
     with mujoco.viewer.launch_passive(simulation.model, simulation.data, key_callback=keys.put) as handle:
         with handle.lock():
             handle.cam.lookat[:] = [.2, -.1, .04]
@@ -150,10 +152,13 @@ def view(checkpoint, dataset, episode, target, mode, config, seconds=None, *, cu
             planning_tick = time.perf_counter()
             plan = planner.plan(observed, target, previous) if planner else None
             elapsed = time.perf_counter() - planning_tick
-            if planner and elapsed > DT:
-                print(f"Planning overrun: {elapsed * 1000:.1f} ms (100 ms deadline); simulation interval stays 100 ms", flush=True)
-            if plan is not None and plan.diagnostics["fallback"]:
-                print("Fallback: all predictions infeasible; holding previous legal command", flush=True)
+            if time.perf_counter() - last_warning >= 5:
+                if plan is not None and plan.diagnostics["fallback"]:
+                    print("Fallback: all predictions infeasible; holding previous legal command", flush=True)
+                    last_warning = time.perf_counter()
+                elif planner and elapsed > DT:
+                    print(f"Planning: {elapsed * 1000:.0f} ms per 100 ms simulation interval (warnings limited to every 5s)", flush=True)
+                    last_warning = time.perf_counter()
             command = plan.actions[0].copy() if plan is not None else initial[:2].copy()
             validate_command_rate(command, previous, config.command_rate_limit)
             previous = command
